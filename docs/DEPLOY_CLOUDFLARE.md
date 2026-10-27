@@ -4,28 +4,34 @@ Static site served by a Cloudflare Worker with static assets. Only address: your
 ## What this branch adds
 | File | Purpose |
 |---|---|
-| `wrangler.jsonc` | Worker config. workers.dev and preview URLs are off. One custom-domain route. |
+| `wrangler.jsonc` | Worker config. Serves only `orbit.ncscdude.com`. workers.dev and preview URLs are off. |
+| `scripts/deploy-orbit.ps1` | One-step deploy for Windows PowerShell |
 | `public/_headers` | Security headers: no outside hosts, no framing, no search indexing |
 | `public/robots.txt` | Blocks crawlers |
 | `src/guardrails/hosting.test.ts` | Fails the gates if any of the above is weakened |
 
-## Order of operations (PowerShell, in C:\dev\orbit)
-1. **Domain active in Cloudflare.** In the dashboard, your domain must show **Active** (nameservers pointed to Cloudflare).
-2. **Get the branch.** Copy: `git fetch "$HOME\Downloads\orbit-cloudflare-host.bundle" cloudflare-host:cloudflare-host`
-3. **Switch to it.** Copy: `git checkout cloudflare-host`
-4. **Install.** Copy: `npm install`
-5. **Set your hostname.** In `wrangler.jsonc`, change `orbit.YOUR-DOMAIN` to your real hostname, for example `orbit.ncscdude.com`.
-6. **Run the gates.** Copy: `npm run gates`
-7. **Commit and push.** Copy: `git commit -am "Set Cloudflare hostname"` then `git push -u origin cloudflare-host`
-8. **Create the Access gate first.** Dashboard > Zero Trust > Access > Applications > Add an application > Self-hosted.
-   - Hostname: the same one as step 5.
+## Fast path (one script)
+1. **Domain active.** `ncscdude.com` shows **Active** in the Cloudflare dashboard.
+2. **Create the Access gate.** Dashboard > Zero Trust > Access > Applications > Add an application > Self-hosted.
+   - Hostname: `orbit.ncscdude.com`
    - Policy: Allow. Include: Emails. List each person by email.
    - Login method: One-time PIN.
-9. **Log Wrangler in.** Copy: `npx wrangler login` (a browser opens; approve).
-10. **Check, then deploy.** Copy: `npm run deploy:check` then `npm run deploy`
-11. **Verify in a private browser window.** Open your hostname. You should see the Cloudflare Access sign-in, not ORBIT. Sign in, then ORBIT loads.
+3. **Put both files in Downloads:** `deploy-orbit.ps1` and `orbit-cloudflare-host-v2.bundle`.
+4. **Run it in PowerShell.** Copy: `powershell -ExecutionPolicy Bypass -File "$HOME\Downloads\deploy-orbit.ps1"`
+5. **Answer the prompts.** Log in to Cloudflare if a browser opens, type YES at the Access question, and choose whether to push to GitHub.
+6. **Verify in a private window:** `https://orbit.ncscdude.com` shows the Cloudflare Access sign-in, then ORBIT.
 
-If step 8 will not accept the hostname before it exists, do step 10 first and finish step 8 right after. The data is fictional, so the short gap is low risk.
+The script stops with a plain message if any step fails. Local edits are saved aside with `git stash`, never deleted.
+Add `-SkipAcceptance` to the command if the Playwright browser cannot download on that machine.
+
+## Manual path
+| Step | PowerShell, in C:\dev\orbit |
+|---|---|
+| Update code | `git pull --ff-only "$HOME\Downloads\orbit-cloudflare-host-v2.bundle" cloudflare-host` |
+| Install | `npm ci` |
+| Gates | `npm run gates` |
+| Log in | `npx wrangler login` |
+| Deploy | `npm run deploy` |
 
 ## Keep these Cloudflare features off
 They inject outside scripts, which the security headers will block:
