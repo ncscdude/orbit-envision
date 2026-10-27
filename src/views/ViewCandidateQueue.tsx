@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useOrbit } from '../state/context';
 import { Candidate } from '../types';
+import { RequireRole } from '../auth/RequireRole';
 import {
   Search,
   Shuffle,
@@ -11,7 +12,7 @@ import {
   BarChart3
 } from 'lucide-react';
 
-export const ViewCandidateQueue: React.FC = () => {
+const ViewCandidateQueueContent: React.FC = () => {
   const { state, dispatch, useMetric } = useOrbit();
   const [hoveredCandidate, setHoveredCandidate] = useState<Candidate | null>(null);
   const [sortField, setSortField] = useState<'name' | 'grade' | 'dafsc' | 'llmFitScore' | 'status'>('llmFitScore');
@@ -426,3 +427,9 @@ export const ViewCandidateQueue: React.FC = () => {
     </div>
   );
 };
+
+export const ViewCandidateQueue: React.FC = () => (
+  <RequireRole viewId="VIEW-CandidateQueue">
+    <ViewCandidateQueueContent />
+  </RequireRole>
+);

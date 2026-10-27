@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useOrbit } from '../state/context';
 import { EXPERIENCES } from '../registry/experiences';
-import { Role } from '../types';
+import { identityProvider, devIdentityProvider } from '../auth/identity';
 import { ShieldCheck, ShieldAlert, Clock, Layers, BookOpen, ChevronDown, UserCheck } from 'lucide-react';
 
 interface HeaderProps {
@@ -13,30 +13,18 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCatalog, onOpenDemoGuide }
   const { state, dispatch } = useOrbit();
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
 
-  const availableRoles: Role[] = [
-    'Panelist',
-    'Board Recorder',
-    'BMO Lead',
-    'Assignments Officer',
-    'HQ Strategic Viewer',
-    'CFM / Career Planner'
-  ];
+  // Switching users is a dev-adapter feature only; under Envision the role is fixed by identity.
+  const canSwitchUser = identityProvider.kind === 'dev';
+  const devUsers = canSwitchUser ? devIdentityProvider.listUsers().filter(u => u.role !== null) : [];
 
   // Filter live experiences that are permitted for the current role
   const liveExperiences = EXPERIENCES.filter(
     exp => exp.status === 'Live' && exp.roles.includes(state.currentRole)
   );
 
-  const handleRoleChange = (role: Role) => {
-    let name = `${role} Evaluator`;
-    if (role === 'BMO Lead') name = 'Col Vance (BMO Lead)';
-    else if (role === 'Panelist') name = 'Col Marcus Vance (Chair)';
-    else if (role === 'Board Recorder') name = 'MSgt Daniel Rivera (Recorder)';
-    else if (role === 'Assignments Officer') name = 'Lt Col David Sterling (Assignments)';
-    else if (role === 'HQ Strategic Viewer') name = 'Maj Gen Travis Hayes (HQ Strategic)';
-    else if (role === 'CFM / Career Planner') name = 'Col Valerie Vance (Career Planner)';
-
-    dispatch({ type: 'SET_ROLE', role, actorName: name });
+  const handleUserChange = (userId: string) => {
+    devIdentityProvider.selectUser(userId);
+    dispatch({ type: 'SET_IDENTITY', identity: devIdentityProvider.getIdentity() });
     setRoleDropdownOpen(false);
   };
 
@@ -124,7 +112,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCatalog, onOpenDemoGuide }
           <div className="relative">
             <button
               type="button"
-              onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
+              onClick={() => canSwitchUser && setRoleDropdownOpen(!roleDropdownOpen)}
               className="flex items-center gap-2 px-3 py-1 bg-[#1e2d45]/70 hover:bg-[#1e2d45] border border-cyan-500/30 rounded text-xs font-medium text-slate-200 transition-colors"
               aria-expanded={roleDropdownOpen}
               aria-label="Select user role"
@@ -140,19 +128,19 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCatalog, onOpenDemoGuide }
             {roleDropdownOpen && (
               <div className="absolute right-0 mt-1.5 w-64 bg-[#0a1020] border border-[#1e2d45] rounded-md shadow-2xl z-50 py-1 text-xs">
                 <div className="px-3 py-1.5 border-b border-[#1e2d45] text-[10px] font-mono text-slate-400 uppercase tracking-wider">
-                  Select Perspective / Role
+                  Select Perspective / Role (dev users)
                 </div>
-                {availableRoles.map(role => (
+                {devUsers.map(user => (
                   <button
-                    key={role}
+                    key={user.userId}
                     type="button"
-                    onClick={() => handleRoleChange(role)}
+                    onClick={() => handleUserChange(user.userId)}
                     className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-[#1e2d45] transition-colors ${
-                      state.currentRole === role ? 'bg-cyan-950/60 text-cyan-300 font-semibold' : 'text-slate-300'
+                      state.userId === user.userId ? 'bg-cyan-950/60 text-cyan-300 font-semibold' : 'text-slate-300'
                     }`}
                   >
-                    <span>{role}</span>
-                    {state.currentRole === role && (
+                    <span>{user.role}</span>
+                    {state.userId === user.userId && (
                       <span className="text-[10px] font-mono text-cyan-400">ACTIVE</span>
                     )}
                   </button>

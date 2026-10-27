@@ -3,6 +3,7 @@ import { useOrbit } from '../state/context';
 import { Candidate } from '../types';
 import { AiBadge } from '../components/AiBadge';
 import { cosineSimilarity } from '../lib/stats';
+import { RequireRole } from '../auth/RequireRole';
 import {
   FileText,
   Award,
@@ -20,7 +21,7 @@ import {
   BarChart3
 } from 'lucide-react';
 
-export const ViewPanelReview: React.FC = () => {
+const ViewPanelReviewContent: React.FC = () => {
   const { state, dispatch } = useOrbit();
   const [activeLens, setActiveLens] = useState<number>(1);
   const [selectedScore, setSelectedScore] = useState<number | null>(null);
@@ -845,3 +846,9 @@ export const ViewPanelReview: React.FC = () => {
     </div>
   );
 };
+
+export const ViewPanelReview: React.FC = () => (
+  <RequireRole viewId="VIEW-PanelReview">
+    <ViewPanelReviewContent />
+  </RequireRole>
+);

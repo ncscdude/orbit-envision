@@ -31,6 +31,18 @@ export function mulberry32(seed: number) {
 
 const rng = mulberry32(19820514);
 
+// Fictional dev identities for the local identity adapter (INTENT-001).
+// Roles are not stored here; they come from the role table in src/auth/roleMap.ts.
+export const DEV_USERS_SEED: { userId: string; displayName: string }[] = [
+  { userId: 'DEV-BMO-01', displayName: 'Col Vance (BMO Lead)' },
+  { userId: 'DEV-PANEL-01', displayName: 'Col Marcus Vance (Chair)' },
+  { userId: 'DEV-REC-01', displayName: 'MSgt Daniel Rivera (Recorder)' },
+  { userId: 'DEV-ASG-01', displayName: 'Lt Col David Sterling (Assignments)' },
+  { userId: 'DEV-HQ-01', displayName: 'Maj Gen Travis Hayes (HQ Strategic)' },
+  { userId: 'DEV-CFM-01', displayName: 'Col Valerie Vance (Career Planner)' },
+  { userId: 'DEV-NOROLE-01', displayName: 'Capt Avery Quinn (Unmapped)' } // deliberately has no role
+];
+
 export const PANELIST_PROFILES = [
   { id: 'PANEL-01', name: 'Col Marcus Vance', role: 'Chair / Senior Evaluator' },
   { id: 'PANEL-02', name: 'Lt Col Elena Rostova', role: 'Orbital Ops Specialist' }, // Tends harsh

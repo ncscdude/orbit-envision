@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useOrbit } from '../state/context';
 import { Milestone, Risk } from '../types';
+import { RequireRole } from '../auth/RequireRole';
 import {
   Download,
   Plus,
   Edit2
 } from 'lucide-react';
 
-export const ViewOpsRegisters: React.FC = () => {
+const ViewOpsRegistersContent: React.FC = () => {
   const { state, dispatch } = useOrbit();
   const [activeTab, setActiveTab] = useState<'milestones' | 'risks' | 'improvements' | 'boards' | 'readiness' | 'results'>('milestones');
   const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
@@ -540,3 +541,9 @@ export const ViewOpsRegisters: React.FC = () => {
     </div>
   );
 };
+
+export const ViewOpsRegisters: React.FC = () => (
+  <RequireRole viewId="VIEW-OpsRegisters">
+    <ViewOpsRegistersContent />
+  </RequireRole>
+);

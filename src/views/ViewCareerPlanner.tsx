@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useOrbit } from '../state/context';
 import { Candidate } from '../types';
 import { AiBadge } from '../components/AiBadge';
+import { RequireRole } from '../auth/RequireRole';
 import {
   calculateCandidateLossProfile,
   simulateRetentionMitigation,
@@ -37,7 +38,7 @@ import {
   Activity
 } from 'lucide-react';
 
-export const ViewCareerPlanner: React.FC = () => {
+const ViewCareerPlannerContent: React.FC = () => {
   const { state, dispatch } = useOrbit();
 
   // View Mode: 'grid' (N-Box & Heatmaps) | 'cards' (Roster Card Gallery with Overlays) | 'calculator' (Loss Calculator & Flight Risk)
@@ -1662,3 +1663,9 @@ export const ViewCareerPlanner: React.FC = () => {
     </div>
   );
 };
+
+export const ViewCareerPlanner: React.FC = () => (
+  <RequireRole viewId="VIEW-CareerPlanner">
+    <ViewCareerPlannerContent />
+  </RequireRole>
+);

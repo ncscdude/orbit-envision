@@ -9,6 +9,7 @@ import {
   computeSupplyRisks
 } from '../lib/match';
 import { runGaleShapleyMatching, runGreedyMatching } from '../lib/stable';
+import { RequireRole } from '../auth/RequireRole';
 import {
   CheckCircle2,
   Sparkles,
@@ -18,7 +19,7 @@ import {
   FileCheck
 } from 'lucide-react';
 
-export const ViewMatchLab: React.FC = () => {
+const ViewMatchLabContent: React.FC = () => {
   const { state, dispatch } = useOrbit();
   const [activeTab, setActiveTab] = useState<'board' | 'weights' | 'stable' | 'sensitivity' | 'nearfit' | 'supply'>('board');
   const [overrideModalOpen, setOverrideModalOpen] = useState(false);
@@ -865,3 +866,9 @@ DRAFT MEMORANDUM // FOR OFFICIAL USE ONLY // NOT FOR OPERATIONAL RELEASE`;
     </div>
   );
 };
+
+export const ViewMatchLab: React.FC = () => (
+  <RequireRole viewId="VIEW-MatchLab">
+    <ViewMatchLabContent />
+  </RequireRole>
+);

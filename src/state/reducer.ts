@@ -4,6 +4,7 @@
  */
 
 import { AppState, Role, DeltaEntry, MatchPair, MatchScenarioWeights, Milestone, Risk } from '../types';
+import type { Identity } from '../auth/identity';
 import { ALL_CANDIDATES_SEED, BILLETS_SEED, BOARDS_SEED, generateMilestones, RISKS_SEED, SOURCE_PIPELINES_SEED, ENDORSERS_SEED, STAFF_SLOTS_SEED, COMMANDER_ACTIONS_SEED, IMPROVEMENT_ACTIONS_SEED, SAMPLE_CANONICAL_FILES } from '../data/seed';
 import { INITIAL_KPIS } from '../data/kpis';
 import { createDeltaEntry } from './delta';
@@ -27,6 +28,62 @@ export function getDefaultLandingForRole(role: Role): string {
     default:
       return 'VIEW-CommandCenter';
   }
+}
+
+// Applies a role to the signed-in actor and logs ROLE_CHANGE when the role or the
+// identity changes. Re-reading the same identity is a no-op.
+function applyRole(state: AppState, role: Role, actorName: string, userId: string): AppState {
+  const changed = role !== state.currentRole || userId !== state.userId || state.accessDenial !== null;
+  if (!changed) return state;
+
+  const oldRole = state.userId ? state.currentRole : null;
+  const delta = createDeltaEntry(
+    state.ledger,
+    actorName,
+    role,
+    userId || 'ORBIT-APP',
+    'ROLE_CHANGE',
+    oldRole ? `Role changed from ${oldRole} to ${role} for ${actorName}` : `Role ${role} assigned to ${actorName} at sign-in`,
+    { oldRole, newRole: role, userId, previousActor: state.userId ? state.actorName : null }
+  );
+
+  return {
+    ...state,
+    currentRole: role,
+    actorName,
+    userId,
+    accessDenial: null,
+    activeViewId: role !== state.currentRole || state.accessDenial ? getDefaultLandingForRole(role) : state.activeViewId,
+    ledger: [...state.ledger, delta]
+  };
+}
+
+function applyIdentity(state: AppState, identity: Identity | null): AppState {
+  if (identity && identity.role) {
+    return applyRole(state, identity.role, identity.displayName, identity.userId);
+  }
+
+  const reason = identity ? 'UNMAPPED_ROLE' : 'UNKNOWN_IDENTITY';
+  const actorName = identity?.displayName ?? 'UNKNOWN IDENTITY';
+  const delta = createDeltaEntry(
+    state.ledger,
+    actorName,
+    'Unmapped',
+    'ORBIT-APP',
+    'ACCESS_DENIED',
+    identity
+      ? `Access denied: ${actorName} has no ORBIT role in the role table`
+      : 'Access denied: signed-in identity was not recognized',
+    { reason, userId: identity?.userId ?? null }
+  );
+
+  return {
+    ...state,
+    actorName,
+    userId: identity?.userId ?? '',
+    accessDenial: reason,
+    ledger: [...state.ledger, delta]
+  };
 }
 
 export function createInitialState(): AppState {
@@ -75,6 +132,8 @@ export function createInitialState(): AppState {
   return {
     currentRole: 'BMO Lead',
     actorName: 'Col Vance (BMO Lead)',
+    userId: '',
+    accessDenial: null,
     activeViewId: 'VIEW-CommandCenter',
     selectedBoardId: 'BRD-001',
     selectedCandidateId: 'PDO-001',
@@ -116,6 +175,8 @@ export function createInitialState(): AppState {
 
 export type Action =
   | { type: 'SET_ROLE'; role: Role; actorName?: string }
+  | { type: 'SET_IDENTITY'; identity: Identity | null }
+  | { type: 'LOG_ACCESS_DENIED'; viewId: string; allowedRoles: Role[] }
   | { type: 'SET_VIEW'; viewId: string }
   | { type: 'SET_BOARD'; boardId: string }
   | { type: 'SELECT_CANDIDATE'; candidateId: string | null }
@@ -164,14 +225,25 @@ export type Action =
 export function appReducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'SET_ROLE': {
-      const defaultLanding = getDefaultLandingForRole(action.role);
       const actorName = action.actorName || `${action.role} User`;
-      return {
-        ...state,
-        currentRole: action.role,
-        actorName,
-        activeViewId: defaultLanding
-      };
+      return applyRole(state, action.role, actorName, state.userId);
+    }
+
+    case 'SET_IDENTITY': {
+      return applyIdentity(state, action.identity);
+    }
+
+    case 'LOG_ACCESS_DENIED': {
+      const delta = createDeltaEntry(
+        state.ledger,
+        state.actorName,
+        state.currentRole,
+        action.viewId,
+        'ACCESS_DENIED',
+        `Access denied: ${state.currentRole} may not open ${action.viewId}`,
+        { reason: 'VIEW_ROLE_FORBIDDEN', viewId: action.viewId, allowedRoles: action.allowedRoles, userId: state.userId }
+      );
+      return { ...state, ledger: [...state.ledger, delta] };
     }
 
     case 'SET_VIEW': {
@@ -925,7 +997,15 @@ export function appReducer(state: AppState, action: Action): AppState {
       } catch {
         // ignore
       }
-      return createInitialState();
+      // Identity and role come from the adapter, so a demo reset keeps them.
+      return {
+        ...createInitialState(),
+        currentRole: state.currentRole,
+        actorName: state.actorName,
+        userId: state.userId,
+        accessDenial: state.accessDenial,
+        activeViewId: getDefaultLandingForRole(state.currentRole)
+      };
     }
 
     default:

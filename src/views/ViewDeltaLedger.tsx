@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useOrbit } from '../state/context';
 import { verifyChain } from '../state/delta';
+import { RequireRole } from '../auth/RequireRole';
 import {
   ShieldCheck,
   ShieldAlert,
@@ -12,7 +13,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 
-export const ViewDeltaLedger: React.FC = () => {
+const ViewDeltaLedgerContent: React.FC = () => {
   const { state, dispatch } = useOrbit();
   const [ledgerSearch, setLedgerSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('All');
@@ -247,6 +248,8 @@ export const ViewDeltaLedger: React.FC = () => {
               <option value="PSDM_EXPORT">PSDM_EXPORT</option>
               <option value="FILE_ROUTED">FILE_ROUTED</option>
               <option value="ROLLBACK">ROLLBACK</option>
+              <option value="ROLE_CHANGE">ROLE_CHANGE</option>
+              <option value="ACCESS_DENIED">ACCESS_DENIED</option>
             </select>
 
             <button
@@ -421,3 +424,9 @@ export const ViewDeltaLedger: React.FC = () => {
     </div>
   );
 };
+
+export const ViewDeltaLedger: React.FC = () => (
+  <RequireRole viewId="VIEW-DeltaLedger">
+    <ViewDeltaLedgerContent />
+  </RequireRole>
+);

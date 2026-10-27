@@ -3,7 +3,7 @@
  * SHA-256 linked log of every human & algorithmic action
  */
 
-import { DeltaEntry, DeltaType, Role } from '../types';
+import { DeltaEntry, DeltaType, LedgerRole } from '../types';
 
 export async function computeHash(content: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -49,7 +49,7 @@ export function syncHash(content: string): string {
 export function createDeltaEntry(
   entries: DeltaEntry[],
   actor: string,
-  role: Role,
+  role: LedgerRole,
   targetId: string,
   type: DeltaType,
   summary: string,

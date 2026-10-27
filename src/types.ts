@@ -261,7 +261,15 @@ export type DeltaType =
   | 'TALENT_NOTE'
   | 'BOARD_OOM_CERTIFY'
   | 'BOARD_EXCEPTIONS_CLEAR'
-  | 'BOARD_ROLE_OVERRIDE';
+  | 'BOARD_ROLE_OVERRIDE'
+  | 'ROLE_CHANGE'
+  | 'ACCESS_DENIED';
+
+// Role recorded on a DELTA entry. 'Unmapped' is used only when access is denied
+// because the identity has no ORBIT role.
+export type LedgerRole = Role | 'Unmapped';
+
+export type AccessDenialReason = 'UNKNOWN_IDENTITY' | 'UNMAPPED_ROLE';
 
 export interface BoardRolePermission {
   role: Role;
@@ -361,7 +369,7 @@ export interface DeltaEntry {
   id: string; // DELTA-000123
   timestamp: string; // Zulu ISO
   actor: string;
-  role: Role;
+  role: LedgerRole;
   targetId: string;
   type: DeltaType;
   summary: string;
@@ -461,6 +469,8 @@ export interface MetricValue {
 export interface AppState {
   currentRole: Role;
   actorName: string;
+  userId: string; // from the identity adapter; '' until first resolved
+  accessDenial: AccessDenialReason | null; // set when the identity has no ORBIT access
   activeViewId: string;
   selectedBoardId: string;
   selectedCandidateId: string | null;

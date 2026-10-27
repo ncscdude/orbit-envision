@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useOrbit } from '../state/context';
 import { Candidate } from '../types';
+import { RequireRole } from '../auth/RequireRole';
 import {
   AlertTriangle,
   CheckCircle2,
   ShieldAlert
 } from 'lucide-react';
 
-export const ViewScoringAudit: React.FC = () => {
+const ViewScoringAuditContent: React.FC = () => {
   const { state, dispatch } = useOrbit();
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [adjudicationAction, setAdjudicationAction] = useState<'Reconcile' | 'Uphold' | 'Escalate'>('Reconcile');
@@ -301,3 +302,9 @@ export const ViewScoringAudit: React.FC = () => {
     </div>
   );
 };
+
+export const ViewScoringAudit: React.FC = () => (
+  <RequireRole viewId="VIEW-ScoringAudit">
+    <ViewScoringAuditContent />
+  </RequireRole>
+);

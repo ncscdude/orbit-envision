@@ -16,8 +16,9 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts';
+import { RequireRole } from '../auth/RequireRole';
 
-export const ViewHeliosCommand: React.FC = () => {
+const ViewHeliosCommandContent: React.FC = () => {
   const { state, dispatch, useMetric } = useOrbit();
   const [activeSubTab, setActiveSubTab] = useState<'A' | 'B' | 'C'>('A');
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
@@ -626,3 +627,9 @@ export const ViewHeliosCommand: React.FC = () => {
     </div>
   );
 };
+
+export const ViewHeliosCommand: React.FC = () => (
+  <RequireRole viewId="VIEW-HeliosCommand">
+    <ViewHeliosCommandContent />
+  </RequireRole>
+);

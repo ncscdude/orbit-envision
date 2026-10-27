@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useOrbit } from '../state/context';
 import { computePanelistCalibration, computeZScoreNormalizedRankings, PanelistStats } from '../lib/stats';
 import { PANELIST_PROFILES } from '../data/seed';
+import { RequireRole } from '../auth/RequireRole';
 import {
   RadarChart,
   PolarGrid,
@@ -19,7 +20,7 @@ import {
   Cell
 } from 'recharts';
 
-export const ViewCrossAnalytics: React.FC = () => {
+const ViewCrossAnalyticsContent: React.FC = () => {
   const { state } = useOrbit();
   const [selectedCandidatesForCompare, setSelectedCandidatesForCompare] = useState<string[]>([
     'PDO-001',
@@ -489,3 +490,9 @@ export const ViewCrossAnalytics: React.FC = () => {
     </div>
   );
 };
+
+export const ViewCrossAnalytics: React.FC = () => (
+  <RequireRole viewId="VIEW-CrossAnalytics">
+    <ViewCrossAnalyticsContent />
+  </RequireRole>
+);

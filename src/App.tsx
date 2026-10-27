@@ -10,6 +10,7 @@ import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { ExperienceCatalogDrawer } from './components/ExperienceCatalogDrawer';
 import { DemoGuideDrawer } from './components/DemoGuideDrawer';
+import { AccessDenied } from './auth/AccessDenied';
 
 // Views
 import { ViewCommandCenter } from './views/ViewCommandCenter';
@@ -61,6 +62,26 @@ const OrbitAppContent: React.FC = () => {
         return <ViewCommandCenter />;
     }
   };
+
+  // Identity with no ORBIT role: no navigation, no views.
+  if (state.accessDenial) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[#05080f] text-slate-100 font-sans">
+        <Banner />
+        <main className="flex-1 p-4 sm:p-6">
+          <AccessDenied
+            actor={state.actorName}
+            role="Unmapped"
+            detail={
+              state.accessDenial === 'UNMAPPED_ROLE'
+                ? 'Your identity was recognized but has no ORBIT role. Contact the ORBIT role table approver.'
+                : 'Your signed-in identity was not recognized by ORBIT.'
+            }
+          />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#05080f] text-slate-100 font-sans">

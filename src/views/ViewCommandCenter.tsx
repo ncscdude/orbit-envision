@@ -14,8 +14,9 @@ import {
   Cpu
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
+import { RequireRole } from '../auth/RequireRole';
 
-export const ViewCommandCenter: React.FC = () => {
+const ViewCommandCenterContent: React.FC = () => {
   const { state, dispatch } = useOrbit();
   const [selectedPhase, setSelectedPhase] = useState<number | null>(null);
   const [kpiSearch, setKpiSearch] = useState('');
@@ -859,3 +860,9 @@ export const ViewCommandCenter: React.FC = () => {
     </div>
   );
 };
+
+export const ViewCommandCenter: React.FC = () => (
+  <RequireRole viewId="VIEW-CommandCenter">
+    <ViewCommandCenterContent />
+  </RequireRole>
+);

@@ -14,8 +14,9 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from 'recharts';
+import { RequireRole } from '../auth/RequireRole';
 
-export const ViewBoardDetail: React.FC = () => {
+const ViewBoardDetailContent: React.FC = () => {
   const { state, dispatch } = useOrbit();
   const [activeTab, setActiveTab] = useState<'overview' | 'scoring' | 'docket' | 'milestones' | 'governance'>('overview');
   const [docketFilter, setDocketFilter] = useState<'All' | 'Pending' | 'Scored' | 'Exceptions'>('All');
@@ -876,3 +877,9 @@ export const ViewBoardDetail: React.FC = () => {
     </div>
   );
 };
+
+export const ViewBoardDetail: React.FC = () => (
+  <RequireRole viewId="VIEW-BoardDetail">
+    <ViewBoardDetailContent />
+  </RequireRole>
+);

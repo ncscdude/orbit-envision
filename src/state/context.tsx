@@ -7,6 +7,7 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { AppState, MetricValue } from '../types';
 import { appReducer, createInitialState, Action } from './reducer';
 import { getMetric } from '../registry/metrics';
+import { identityProvider } from '../auth/identity';
 
 interface AppContextType {
   state: AppState;
@@ -20,19 +21,23 @@ const STORAGE_KEY = 'orbit_demo_state_v4';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, undefined, () => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Ensure candidates and required structures are intact
-        if (parsed.candidates && parsed.ledger && parsed.kpis) {
-          return parsed;
+    const loadSaved = (): AppState => {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          // Ensure candidates and required structures are intact
+          if (parsed.candidates && parsed.ledger && parsed.kpis) {
+            return { userId: '', accessDenial: null, ...parsed };
+          }
         }
+      } catch {
+        // fallback to pristine initial state
       }
-    } catch {
-      // fallback to pristine initial state
-    }
-    return createInitialState();
+      return createInitialState();
+    };
+    // Role always comes from the identity adapter, never from saved state.
+    return appReducer(loadSaved(), { type: 'SET_IDENTITY', identity: identityProvider.getIdentity() });
   });
 
   // Save to localStorage
