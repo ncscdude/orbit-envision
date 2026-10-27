@@ -1,5 +1,9 @@
 # Changelog
 
+## cloudflare-host 0.5.2 (2026-10-27)
+- Hostname set to orbit.ncscdude.com and pinned by the hosting test.
+- Added scripts/deploy-orbit.ps1 one-step deploy.
+
 ## cloudflare-host 0.5.1 (2026-10-27)
 - Branch from envision-path for hosting on Cloudflare.
 - Worker with static assets (`wrangler.jsonc`), custom domain only, workers.dev and preview URLs off.

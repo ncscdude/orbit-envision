@@ -19,6 +19,7 @@ test('workers.dev and preview URLs are disabled', () => {
 test('site is served only on a custom domain', () => {
   assert.ok(Array.isArray(wrangler.routes) && wrangler.routes.length === 1);
   assert.equal(wrangler.routes[0].custom_domain, true);
+  assert.equal(wrangler.routes[0].pattern, 'orbit.ncscdude.com');
 });
 
 test('assets-only Worker with single-page fallback', () => {
