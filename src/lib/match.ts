@@ -113,6 +113,23 @@ export function computeCandidateScore(
   };
 }
 
+/**
+ * Flattens the score matrix to plain numbers for the matchers.
+ * A pair that fails a hard constraint (DAFSC or grade) gets 0, which the greedy matcher never assigns.
+ */
+export function toScoreMatrix(
+  matrix: Record<string, Record<string, MatchScoreComponents>>
+): Record<string, Record<string, number>> {
+  const out: Record<string, Record<string, number>> = {};
+  for (const [billetId, row] of Object.entries(matrix)) {
+    out[billetId] = {};
+    for (const [candidateId, comp] of Object.entries(row)) {
+      out[billetId][candidateId] = comp.constraintsPassed ? comp.totalScore : 0;
+    }
+  }
+  return out;
+}
+
 export function generateAllCandidateBilletScores(
   candidates: Candidate[],
   billets: Billet[],

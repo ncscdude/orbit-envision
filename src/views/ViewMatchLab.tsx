@@ -6,7 +6,8 @@ import {
   DEFAULT_WEIGHTS,
   generateAllCandidateBilletScores,
   findNearFitCandidates,
-  computeSupplyRisks
+  computeSupplyRisks,
+  toScoreMatrix
 } from '../lib/match';
 import { runGaleShapleyMatching, runGreedyMatching } from '../lib/stable';
 import { RequireRole } from '../auth/RequireRole';
@@ -60,11 +61,7 @@ const ViewMatchLabContent: React.FC = () => {
   }, [state.candidates, state.billets, matrix]);
 
   const greedyResults = useMemo(() => {
-    return runGreedyMatching(
-      state.candidates,
-      state.billets,
-      matrix as unknown as Record<string, Record<string, number>>
-    );
+    return runGreedyMatching(state.candidates, state.billets, toScoreMatrix(matrix));
   }, [state.candidates, state.billets, matrix]);
 
   // Contention detection: candidates top-matched to >= 2 billets

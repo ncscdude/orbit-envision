@@ -108,12 +108,12 @@ export function runGreedyMatching(
 
   for (const cand of sortedCandidates) {
     let bestBilletId: string | null = null;
-    let bestScore = -1;
+    let bestScore = 0; // a score of 0 means ineligible (failed a hard constraint): never assigned
 
     for (const b of billets) {
       if (assignedBillets.has(b.id)) continue;
-      const score = (matchScores[b.id] && matchScores[b.id][cand.id]) || 0;
-      if (score > bestScore) {
+      const score = matchScores[b.id]?.[cand.id] ?? 0;
+      if (typeof score === 'number' && score > bestScore) {
         bestScore = score;
         bestBilletId = b.id;
       }

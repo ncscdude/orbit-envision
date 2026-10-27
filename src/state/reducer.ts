@@ -8,7 +8,7 @@ import type { Identity } from '../auth/identity';
 import { ALL_CANDIDATES_SEED, BILLETS_SEED, BOARDS_SEED, generateMilestones, RISKS_SEED, SOURCE_PIPELINES_SEED, ENDORSERS_SEED, STAFF_SLOTS_SEED, COMMANDER_ACTIONS_SEED, IMPROVEMENT_ACTIONS_SEED, SAMPLE_CANONICAL_FILES } from '../data/seed';
 import { INITIAL_KPIS } from '../data/kpis';
 import { createDeltaEntry } from './delta';
-import { DEFAULT_WEIGHTS, generateAllCandidateBilletScores, computeSensitivityHolds } from '../lib/match';
+import { DEFAULT_WEIGHTS, generateAllCandidateBilletScores, computeSensitivityHolds, toScoreMatrix } from '../lib/match';
 import { runGreedyMatching } from '../lib/stable';
 
 export function getDefaultLandingForRole(role: Role): string {
@@ -89,11 +89,7 @@ function applyIdentity(state: AppState, identity: Identity | null): AppState {
 export function createInitialState(): AppState {
   // Generate initial matches
   const matrix = generateAllCandidateBilletScores(ALL_CANDIDATES_SEED, BILLETS_SEED, DEFAULT_WEIGHTS);
-  const greedyRes = runGreedyMatching(
-    ALL_CANDIDATES_SEED,
-    BILLETS_SEED,
-    matrix as unknown as Record<string, Record<string, number>>
-  );
+  const greedyRes = runGreedyMatching(ALL_CANDIDATES_SEED, BILLETS_SEED, toScoreMatrix(matrix));
 
   const officialMatches: MatchPair[] = greedyRes.matches.map((m, idx) => ({
     candidateId: m.candidateId,
