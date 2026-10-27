@@ -5,7 +5,7 @@
  */
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
 const stripComments = (s: string) => s.replace(/^\s*\/\/.*$/gm, '');
 const wrangler = JSON.parse(stripComments(readFileSync('wrangler.jsonc', 'utf8')));
@@ -34,4 +34,17 @@ test('security headers block outside hosts and search indexing', () => {
   assert.match(headers, /connect-src 'self'/);
   assert.match(headers, /frame-ancestors 'none'/);
   assert.match(headers, /X-Robots-Tag: noindex/);
+});
+
+test('Field Guide is self-contained so the CSP does not block it', () => {
+  const guide = readFileSync('public/guide/index.html', 'utf8');
+  assert.doesNotMatch(guide, /<script>(?!<\/script>)/, 'no inline scripts (CSP script-src self)');
+  assert.match(guide, /<script src="guide\.js"/);
+  assert.doesNotMatch(guide, /https?:\/\//, 'no outside hosts');
+  const js = readFileSync('public/guide/guide.js', 'utf8');
+  const shots = [...js.matchAll(/img: '([a-z0-9-]+)'/g)].map(m => m[1]);
+  assert.ok(shots.length >= 6, 'guide references its screenshots');
+  for (const name of shots) {
+    assert.ok(existsSync(`public/guide/img/${name}.jpg`), `missing screenshot ${name}`);
+  }
 });

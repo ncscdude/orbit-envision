@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>ORBIT Field Guide</title>
+<style>
+:root { color-scheme: light; }
+body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+/* Layout: briefing header, then a role picker rail, then a two-column walkthrough (steps left, live screen right). */
+:root {
+  --bg: #eef2f6;
+  --surface: #ffffff;
+  --surface-2: #f6f8fb;
+  --ink: #0e1726;
+  --muted: #536175;
+  --line: #d5dce6;
+  --accent: #0a7aa0;
+  --accent-ink: #ffffff;
+  --warn-bg: #fff6e0;
+  --warn-ink: #7a5300;
+  --shadow: 0 1px 2px rgba(14, 23, 38, .06), 0 8px 24px rgba(14, 23, 38, .06);
+  --role: #0a7aa0;
+  --f-display: "Bahnschrift SemiCondensed", "Arial Narrow", "Segoe UI", sans-serif;
+  --f-body: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  --f-mono: Consolas, "Cascadia Mono", "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #070b14; --surface: #0d1422; --surface-2: #0a1020; --ink: #e6edf7; --muted: #95a3b8; --line: #1e2d45;
+    --accent: #00c2ea; --accent-ink: #04121a; --warn-bg: #2a2108; --warn-ink: #ffcf5a;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #070b14; --surface: #0d1422; --surface-2: #0a1020; --ink: #e6edf7; --muted: #95a3b8; --line: #1e2d45;
+  --accent: #00c2ea; --accent-ink: #04121a; --warn-bg: #2a2108; --warn-ink: #ffcf5a;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 48px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; letter-spacing: .01em; margin: 0; }
+.mono { font-family: var(--f-mono); }
+a { color: var(--accent); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+/* Header */
+.masthead { display: grid; gap: 18px; padding-block: 36px 24px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.eyebrow b { color: var(--accent); font-weight: 500; }
+.masthead h1 { font-size: clamp(34px, 5vw, 52px); line-height: 1.02; }
+.masthead p { margin: 0; max-width: 64ch; color: var(--muted); font-size: 16px; }
+
+/* Getting in */
+.getin { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-block: 8px 28px; }
+.getin .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.getin .k { font-family: var(--f-mono); font-size: 12px; color: var(--accent); letter-spacing: .06em; }
+.getin h3 { font-size: 18px; }
+.getin p { margin: 0; color: var(--muted); font-size: 14px; }
+.getin code { font-family: var(--f-mono); font-size: 13px; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); padding: 0 5px; border-radius: 4px; word-break: break-all; }
+
+/* Role picker */
+.picker-label { font-family: var(--f-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+.picker { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 8px; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.role-btn {
+  text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer;
+  display: grid; gap: 2px; min-width: 0; transition: border-color .15s, transform .15s;
+}
+.role-btn:hover { border-color: var(--rc); }
+.role-btn .sw { width: 22px; height: 4px; border-radius: 2px; background: var(--rc); margin-bottom: 6px; }
+.role-btn .n { font-family: var(--f-display); font-weight: 700; font-size: 17px; line-height: 1.15; }
+.role-btn .s { font-size: 12px; color: var(--muted); }
+.role-btn[aria-selected="true"] { border-color: var(--rc); box-shadow: inset 0 0 0 1px var(--rc), var(--shadow); }
+
+/* Role panel */
+.panel { margin-top: 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
+.panel-head { padding: 22px 24px 18px; border-bottom: 1px solid var(--line); display: grid; gap: 10px; border-top: 4px solid var(--role); }
+.panel-head .row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; }
+.panel-head h2 { font-size: clamp(26px, 3.4vw, 34px); }
+.panel-head .title { color: var(--muted); font-size: 15px; }
+.question { font-size: 18px; font-weight: 500; max-width: 62ch; margin: 0; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font-family: var(--f-mono); font-size: 12px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-2); color: var(--muted); }
+.chip.on { color: var(--ink); border-color: var(--role); }
+.chip strong { color: var(--ink); font-weight: 500; }
+
+.body { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+.steps { padding: 20px 20px 24px 24px; display: grid; gap: 8px; align-content: start; border-right: 1px solid var(--line); }
+.steps h3 { font-size: 15px; font-family: var(--f-mono); font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.step { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; text-align: left; background: none; border: 1px solid transparent; border-radius: 10px; padding: 10px; cursor: pointer; }
+.step:hover { background: var(--surface-2); }
+.step[aria-current="true"] { background: var(--surface-2); border-color: var(--line); }
+.step .num { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-family: var(--f-mono); font-size: 13px; border: 1.5px solid var(--role); color: var(--ink); }
+.step[aria-current="true"] .num { background: var(--role); color: #08111d; border-color: var(--role); font-weight: 500; }
+.step .t { font-weight: 600; display: block; }
+.step .d { color: var(--muted); font-size: 14px; display: block; }
+.step .d kbd, .rules kbd { font-family: var(--f-mono); font-size: 12px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; background: var(--surface); color: var(--ink); }
+.step .cam { font-family: var(--f-mono); font-size: 11px; color: var(--accent); margin-top: 4px; display: inline-block; }
+
+.screen { padding: 20px 24px 24px 20px; display: grid; gap: 10px; align-content: start; min-width: 0; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 96px); align-self: start; }
+.shot { position: relative; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: #05080f; cursor: zoom-in; padding: 0; display: block; width: 100%; }
+.shot img { display: block; width: 100%; height: auto; aspect-ratio: 1440 / 900; object-fit: cover; object-position: top; }
+.shot .zoom { position: absolute; right: 10px; bottom: 10px; font-family: var(--f-mono); font-size: 11px; background: rgba(5,8,15,.82); color: #e6edf7; padding: 4px 8px; border-radius: 6px; border: 1px solid #1e2d45; }
+.caption { font-size: 13px; color: var(--muted); margin: 0; }
+.caption .mono { color: var(--ink); }
+
+.limits { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); }
+.limits > div { padding: 18px 24px 22px; min-width: 0; }
+.limits > div + div { border-left: 1px solid var(--line); }
+.limits h3 { font-size: 15px; font-family: var(--f-mono); font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.limits ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.limits li::marker { color: var(--role); }
+.note { margin: 0 24px 22px; background: var(--warn-bg); color: var(--warn-ink); border-radius: 8px; padding: 10px 14px; font-size: 14px; }
+
+/* Rules + matrix */
+.section { margin-top: 36px; display: grid; gap: 14px; }
+.section h2 { font-size: 28px; }
+.section > p { margin: 0; color: var(--muted); max-width: 70ch; }
+.rules { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.rules .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0; }
+.rules h3 { font-size: 18px; margin-bottom: 4px; }
+.rules p { margin: 0; color: var(--muted); font-size: 14px; }
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 760px; font-size: 14px; }
+th, td { padding: 9px 12px; border-bottom: 1px solid var(--line); text-align: center; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+thead th { font-family: var(--f-mono); font-weight: 500; font-size: 12px; color: var(--muted); letter-spacing: .04em; }
+thead th .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+tbody tr:last-child td { border-bottom: 0; }
+td.y { color: var(--ink); font-weight: 600; }
+td.n { color: var(--muted); opacity: .55; }
+td .land { font-family: var(--f-mono); font-size: 11px; color: var(--accent); margin-left: 4px; }
+.foot { margin-top: 28px; color: var(--muted); font-size: 13px; display: grid; gap: 4px; }
+
+/* Lightbox */
+dialog { border: 1px solid var(--line); border-radius: 12px; padding: 0; background: #05080f; max-width: min(1440px, 96vw); width: 96vw; }
+dialog::backdrop { background: rgba(3, 6, 12, .78); }
+dialog img { display: block; width: 100%; height: auto; }
+dialog .bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 12px; background: #0a1020; color: #e6edf7; font-family: var(--f-mono); font-size: 12px; }
+dialog button { background: #1e2d45; border: 0; color: #e6edf7; border-radius: 6px; padding: 6px 10px; cursor: pointer; }
+
+@media (max-width: 980px) {
+  .picker { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .getin { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .body { grid-template-columns: minmax(0, 1fr); }
+  .steps { border-right: 0; border-bottom: 1px solid var(--line); }
+  .screen { padding: 16px 20px 20px; position: static; }
+  .rules { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .picker { grid-template-columns: repeat(2, minmax(0, 1fr)); position: static; }
+  .getin { grid-template-columns: minmax(0, 1fr); }
+  .limits { grid-template-columns: minmax(0, 1fr); }
+  .limits > div + div { border-left: 0; border-top: 1px solid var(--line); }
+  .panel-head, .steps { padding-left: 16px; padding-right: 16px; }
+  .note { margin-inline: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <div class="eyebrow"><b>Project ORBIT</b><span>Operational Repository for Boards &amp; Talent</span><span>orbit.ncscdude.com</span></div>
+    <h1>ORBIT Field Guide</h1>
+    <p>Pick your role below. Each walkthrough shows ORBIT the way that role sees it: where you land, what you do there, and what is off limits. All screens are from the live demo build. All data is fictional.</p>
+  </header>
+
+  <section aria-label="Getting in" class="getin">
+    <div class="card"><span class="k">1 · OPEN</span><h3>Go to the site</h3><p><code>orbit.ncscdude.com</code> in any browser. A Cloudflare sign-in page appears first.</p></div>
+    <div class="card"><span class="k">2 · SIGN IN</span><h3>Email and PIN</h3><p>Enter your <code>@spaceforce.mil</code> or <code>@us.af.mil</code> email. Type the code sent to your inbox. Check junk if it is slow.</p></div>
+    <div class="card"><span class="k">3 · PICK A PERSPECTIVE</span><h3>Top-right menu</h3><p>In this demo, choose a role under <strong>Perspective</strong>. In Envision your role will come from your identity instead.</p></div>
+    <div class="card"><span class="k">4 · NO ACCESS?</span><h3>Unmapped identity</h3><p>A "No access" screen means your identity has no ORBIT role. The attempt is logged. Ask the ORBIT role table approver.</p></div>
+  </section>
+
+  <div class="picker-label" id="picker-label">Choose your role</div>
+  <nav class="picker" role="tablist" aria-labelledby="picker-label" id="picker"></nav>
+
+  <article class="panel" id="panel" role="tabpanel" aria-live="polite"></article>
+
+  <section class="section" aria-labelledby="rules-h">
+    <h2 id="rules-h">Rules that apply to everyone</h2>
+    <div class="rules">
+      <div class="card"><h3>AI is advisory</h3><p>Anything with a purple <strong>AI</strong> badge is a suggestion. A person signs off, and the sign-off is logged.</p></div>
+      <div class="card"><h3>Every action is recorded</h3><p>Scores, overrides, sign-offs, and denials go to the <strong>DELTA Ledger</strong>, a hash-chained log. The header shows <strong>Chain Verified</strong> when it is intact.</p></div>
+      <div class="card"><h3>Reasons are required</h3><p>Overrides need a written reason of at least 20 characters. Flags need a reason too.</p></div>
+      <div class="card"><h3>No anchoring</h3><p>Panelists score first. The model score and panel average appear only after submitting.</p></div>
+      <div class="card"><h3>Talent data is walled off</h3><p>Risk of Loss, Talent Score, and the N-Box never reach Panelists and never feed scoring or the Order of Merit.</p></div>
+      <div class="card"><h3>Fictional data only</h3><p>Every name, ID, and PAS code here is invented. Do not enter real personnel data. <strong>Reset Demo</strong> in the footer restores the start state.</p></div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="matrix-h">
+    <h2 id="matrix-h">Which tabs each role sees</h2>
+    <p>Read straight from the live build. "Lands" marks the screen each role opens on.</p>
+    <div class="tablewrap"><table id="matrix"></table></div>
+  </section>
+
+  <footer class="foot">
+    <span>Screens captured from build <span class="mono">cloudflare-host 745b531</span> (INTENT-001) with the Match Board fix, 27 Oct 2026.</span>
+    <span>Fictional data. Not for operational use.</span>
+  </footer>
+</div>
+
+<dialog id="lightbox" aria-label="Enlarged screen">
+  <div class="bar"><span id="lb-cap"></span><button type="button" id="lb-close">Close</button></div>
+  <img id="lb-img" alt="">
+</dialog>
+<script src="guide.js" defer></script>
+</body>
+</html>
