@@ -11,7 +11,9 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "gates": "npm run lint && npm run test && npm run test:e2e"
+    "gates": "npm run lint && npm run test && npm run test:e2e",
+    "deploy": "npm run build && wrangler deploy",
+    "deploy:check": "npm run build && wrangler deploy --dry-run"
   },
   "dependencies": {
     "lucide-react": "^0.546.0",
@@ -34,6 +36,7 @@
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.72.1",
     "vite": "^8.3.5",
-    "vitest": "^5.0.5"
+    "vitest": "^5.0.5",
+    "wrangler": "^4.154.0"
   }
 }

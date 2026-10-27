@@ -1,4 +1,13 @@
-# Changelog: envision-path
+# Changelog
+
+## cloudflare-host 0.5.1 (2026-10-27)
+- Branch from envision-path for hosting on Cloudflare.
+- Worker with static assets (`wrangler.jsonc`), custom domain only, workers.dev and preview URLs off.
+- Security headers (`public/_headers`), robots block, hosting guard tests (22 unit tests total).
+- `npm run deploy` and `npm run deploy:check`. Playwright accepts `BASE_URL` to test a running server.
+- Guide: `docs/DEPLOY_CLOUDFLARE.md`.
+
+## envision-path
 
 ## 0.5.0 (2026-10-27)
 - Branch created from prototype 4.3.0.

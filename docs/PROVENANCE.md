@@ -25,5 +25,6 @@ All people, IDs, PAS codes, and values in this repository are fictional.
 |---|---|
 | `prototype-4.3.0` | Untouched export of the prototype source, kept for the record |
 | `envision-path` | Cleaned code, test gates, and INTENT files for Envision |
+| `cloudflare-host` | `envision-path` plus Cloudflare hosting config, security headers, and hosting tests |
 
 Decide before pushing to web.git.mil whether to push only `envision-path`. Its history includes the baseline commit.

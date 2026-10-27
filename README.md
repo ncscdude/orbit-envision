@@ -24,4 +24,5 @@ Open `INTENT.md`. Section 6 has the exact prompt for VS Code Copilot.
 | `INTENT.md` | Current feature intent, guardrails, acceptance tests, gates |
 | `docs/TERM_ORIGINS.md` | Where ORBIT's wording comes from |
 | `docs/PROVENANCE.md` | Who and what produced this code |
-| `CHANGELOG.md` | Changes on this branch |
+| `docs/DEPLOY_CLOUDFLARE.md` | Hosting on Cloudflare behind Access |
+| `CHANGELOG.md` | Changes by branch |
