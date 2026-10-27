@@ -87,9 +87,9 @@ export const ViewOpsRegisters: React.FC = () => {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#1e2d45] pb-3">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-            <span>Operations Registers & Accountability Master</span>
+            <span>Operations Logs</span>
             <span className="font-mono text-xs text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-800">
-              SIX MASTER REGISTERS
+              ORBIT DATA LOGS
             </span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
@@ -131,7 +131,7 @@ export const ViewOpsRegisters: React.FC = () => {
         <div className="bg-[#0a1020] border border-[#1e2d45] rounded-md p-5 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#1e2d45] pb-3">
             <div>
-              <h3 className="font-bold text-white text-sm">Milestones Register (Late Items Prioritized)</h3>
+              <h3 className="font-bold text-white text-sm">Milestone Log (Late Items First)</h3>
               <p className="text-xs text-slate-400">
                 Compare planned vs actual timelines across cycles. Editable by Board Recorder & BMO Lead.
               </p>
@@ -204,7 +204,7 @@ export const ViewOpsRegisters: React.FC = () => {
         <div className="bg-[#0a1020] border border-[#1e2d45] rounded-md p-5 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#1e2d45] pb-3">
             <div>
-              <h3 className="font-bold text-white text-sm">Risk, Issue & Change Register</h3>
+              <h3 className="font-bold text-white text-sm">Risk, Issue & Change Log</h3>
               <p className="text-xs text-slate-400">
                 Track open risks, aging buckets, mitigations, and escalation triggers.
               </p>
@@ -278,7 +278,7 @@ export const ViewOpsRegisters: React.FC = () => {
             <div>
               <h3 className="font-bold text-white text-sm">Phase 8 AAR Items</h3>
               <p className="text-xs text-slate-400">
-                Continuous improvement register tracking post-board lessons and workflow remediations (K-11).
+                AAR items from closed cycles with owner and due date (K-11).
               </p>
             </div>
 
@@ -328,11 +328,11 @@ export const ViewOpsRegisters: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 4: BOARD REGISTER */}
+      {/* TAB 4: CYCLE LOG */}
       {activeTab === 'boards' && (
         <div className="bg-[#0a1020] border border-[#1e2d45] rounded-md p-5 space-y-4">
           <div className="flex justify-between items-center border-b border-[#1e2d45] pb-3">
-            <h3 className="font-bold text-white text-sm">Board Master Register (12 Cycles)</h3>
+            <h3 className="font-bold text-white text-sm">Cycle Log ({state.boards.length} Cycles)</h3>
             <button
               onClick={() => exportCsv('orbit_boards.csv', state.boards)}
               className="flex items-center gap-1.5 px-3 py-1 text-xs text-slate-300 bg-[#05080f] border border-[#1e2d45] rounded hover:text-white"
@@ -379,7 +379,7 @@ export const ViewOpsRegisters: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 5: READINESS REGISTER */}
+      {/* TAB 5: PACKET CHECK */}
       {activeTab === 'readiness' && (
         <div className="bg-[#0a1020] border border-[#1e2d45] rounded-md p-5 space-y-4">
           <div className="flex justify-between items-center border-b border-[#1e2d45] pb-3">
@@ -430,7 +430,7 @@ export const ViewOpsRegisters: React.FC = () => {
       {activeTab === 'results' && (
         <div className="bg-[#0a1020] border border-[#1e2d45] rounded-md p-5 space-y-4">
           <div className="flex justify-between items-center border-b border-[#1e2d45] pb-3">
-            <h3 className="font-bold text-white text-sm">Results and Post-Board Slating Register</h3>
+            <h3 className="font-bold text-white text-sm">Results & Placement Log</h3>
             <button
               onClick={() => exportCsv('orbit_official_slates.csv', state.officialMatches)}
               className="flex items-center gap-1.5 px-3 py-1 text-xs text-slate-300 bg-[#05080f] border border-[#1e2d45] rounded hover:text-white"

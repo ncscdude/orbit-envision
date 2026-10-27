@@ -154,7 +154,7 @@ export const EXPERIENCES: ExperienceDef[] = [
     status: 'Roadmap'
   },
   {
-    id: 'EXP-012',
+    id: 'EXP-013',
     ideaId: 'IDEA-007',
     viewId: 'VIEW-BoardCalendar',
     title: 'Board Calendar & Conflict Detector',
@@ -165,7 +165,7 @@ export const EXPERIENCES: ExperienceDef[] = [
     status: 'Roadmap'
   },
   {
-    id: 'EXP-013',
+    id: 'EXP-014',
     ideaId: 'IDEA-008',
     viewId: 'VIEW-SuccessionBench',
     title: 'Succession Bench by Billet',
@@ -176,7 +176,7 @@ export const EXPERIENCES: ExperienceDef[] = [
     status: 'Roadmap'
   },
   {
-    id: 'EXP-014',
+    id: 'EXP-015',
     ideaId: 'IDEA-009',
     viewId: 'VIEW-DataConflictFinder',
     title: 'Data Conflict Finder',
@@ -187,7 +187,7 @@ export const EXPERIENCES: ExperienceDef[] = [
     status: 'Roadmap'
   },
   {
-    id: 'EXP-015',
+    id: 'EXP-016',
     ideaId: 'IDEA-010',
     viewId: 'VIEW-CascadeTracker',
     title: 'Decline & Deferral Cascade Tracker',
@@ -198,7 +198,7 @@ export const EXPERIENCES: ExperienceDef[] = [
     status: 'Roadmap'
   },
   {
-    id: 'EXP-016',
+    id: 'EXP-017',
     ideaId: 'IDEA-011',
     viewId: 'VIEW-ExecutiveBriefGen',
     title: 'Executive Brief Generator',
@@ -209,7 +209,7 @@ export const EXPERIENCES: ExperienceDef[] = [
     status: 'Roadmap'
   },
   {
-    id: 'EXP-017',
+    id: 'EXP-018',
     ideaId: 'IDEA-012',
     viewId: 'VIEW-LessonsLibrary',
     title: 'AAR Library',
@@ -220,7 +220,7 @@ export const EXPERIENCES: ExperienceDef[] = [
     status: 'Roadmap'
   },
   {
-    id: 'EXP-018',
+    id: 'EXP-019',
     ideaId: 'IDEA-013',
     viewId: 'VIEW-PanelistRehearsal',
     title: 'Panelist Rehearsal Mode',
