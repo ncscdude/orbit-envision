@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { useOrbit } from '../state/context';
-import { Candidate, Endorser } from '../types';
 import { computePanelistCalibration, computeZScoreNormalizedRankings, PanelistStats } from '../lib/stats';
 import { PANELIST_PROFILES } from '../data/seed';
 import {
@@ -17,25 +16,11 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell,
-  BarChart,
-  Bar,
-  Legend
+  Cell
 } from 'recharts';
-import {
-  Users,
-  Layers,
-  PieChart as PieIcon,
-  BarChart3,
-  CheckCircle2,
-  AlertTriangle,
-  RotateCcw,
-  Sparkles,
-  Info
-} from 'lucide-react';
 
 export const ViewCrossAnalytics: React.FC = () => {
-  const { state, dispatch } = useOrbit();
+  const { state } = useOrbit();
   const [selectedCandidatesForCompare, setSelectedCandidatesForCompare] = useState<string[]>([
     'PDO-001',
     'PDO-002',
@@ -106,7 +91,7 @@ export const ViewCrossAnalytics: React.FC = () => {
     const avg = scores.length > 0 ? Number((scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)) : 8.0;
     const isHeartburn = Math.abs((c.myScore || avg) - avg) >= 1.5;
 
-    let quadrant = 'Consensus Strong';
+    let quadrant: string;
     if (avg >= 8.0 && c.llmFitScore >= 80) quadrant = 'Consensus Strong';
     else if (avg < 8.0 && c.llmFitScore >= 80) quadrant = 'Hidden Talent';
     else if (avg >= 8.0 && c.llmFitScore < 80) quadrant = 'Model Skeptic';

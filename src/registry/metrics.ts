@@ -14,7 +14,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     unit: 'records',
     formula: 'count(processed in last 24h) with 24h delta comparison',
     target: '>= 10 rec/day',
-    owner: 'Boards Management Lead',
+    owner: 'BMO Lead',
     sourceRef: 'Pipeline Ingest & Stage Gate Audit Log',
     compute: (s: AppState): MetricValue => {
       const processed = s.candidates.filter(c => c.flow.stage === 'Scoring' || c.flow.stage === 'Finalized').length;
@@ -35,7 +35,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     formula: 'mean(lockedAt - ingestedAt) in minutes',
     target: '<= 5.0 min',
     thresholds: { amber: 5.0, red: 10.0, direction: 'above' },
-    owner: 'Ingestion/Eligibility Owner',
+    owner: 'Data Engineer',
     sourceRef: 'Pipeline Ingestion Queue Telemetry',
     compute: (_s: AppState): MetricValue => {
       // Seeded average is 4.2 minutes
@@ -56,7 +56,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     formula: 'count(candidates in non-complete stage > 24h)',
     target: '0',
     thresholds: { amber: 1, red: 3, direction: 'above' },
-    owner: 'Boards Management Lead',
+    owner: 'BMO Lead',
     sourceRef: 'Stage Gate Flow Register',
     compute: (s: AppState): MetricValue => {
       // Candidates seeded as stuck (e.g. PDO-013, PDO-014)
@@ -84,7 +84,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     formula: 'count(records with hard integration or network socket error)',
     target: '0',
     thresholds: { amber: 1, red: 2, direction: 'above' },
-    owner: 'Ingestion/Eligibility Owner',
+    owner: 'Data Engineer',
     sourceRef: 'API Gateway Ingestion Error Log',
     compute: (s: AppState): MetricValue => {
       const failed = s.candidates.filter(c => c.flow.failedIngest).length;
@@ -104,7 +104,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     unit: 'status',
     formula: 'daysRemaining > estimatedProcessingDaysNeeded',
     target: 'Yes',
-    owner: 'Boards Management Lead',
+    owner: 'BMO Lead',
     sourceRef: 'Milestones Schedule & Linear Throughput Model',
     compute: (_s: AppState): MetricValue => {
       return {
@@ -123,14 +123,14 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     unit: 'slope',
     formula: 'linear regression slope of 7-day rolling processed count',
     target: 'Positive / stable',
-    owner: 'Board Execution Lead',
+    owner: 'Scoring Engineer',
     sourceRef: 'Throughput History Engine',
     compute: (_s: AppState): MetricValue => {
       return {
         raw: 1.45,
         formatted: '+1.45 rec/day (Upward)',
         status: 'green',
-        tooltip: 'Topological slope indicates steady acceleration in packet readiness and scoring turnover.'
+        tooltip: 'Topological slope indicates steady acceleration in packet checks and scoring turnover.'
       };
     }
   },
@@ -141,7 +141,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     name: 'Ingested Packages',
     unit: 'records',
     formula: 'count(flow.stage == Ingested)',
-    owner: 'Ingestion Owner',
+    owner: 'Data Engineer',
     sourceRef: 'Stage Gate Monitor',
     compute: (s: AppState): MetricValue => {
       const c = s.candidates.filter(x => x.flow.stage === 'Ingested').length;
@@ -153,7 +153,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     name: 'Validated Packages',
     unit: 'records',
     formula: 'count(flow.stage == Validated)',
-    owner: 'Ingestion Owner',
+    owner: 'Data Engineer',
     sourceRef: 'Stage Gate Monitor',
     compute: (s: AppState): MetricValue => {
       const valid = s.candidates.filter(x => x.flow.stage === 'Validated');
@@ -183,7 +183,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     name: 'Scoring Packages',
     unit: 'records',
     formula: 'count(flow.stage == Scoring)',
-    owner: 'Board Execution Lead',
+    owner: 'Scoring Engineer',
     sourceRef: 'Stage Gate Monitor',
     compute: (s: AppState): MetricValue => {
       const c = s.candidates.filter(x => x.flow.stage === 'Scoring').length;
@@ -195,7 +195,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     name: 'Finalized Packages',
     unit: 'records',
     formula: 'count(flow.stage == Finalized)',
-    owner: 'Results Finalization Owner',
+    owner: 'Program Manager',
     sourceRef: 'Stage Gate Monitor',
     compute: (s: AppState): MetricValue => {
       const c = s.candidates.filter(x => x.flow.stage === 'Finalized').length;
@@ -211,7 +211,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     formula: 'hours since last ARMS synchronization',
     target: '<= 12h',
     thresholds: { amber: 12, red: 24, direction: 'above' },
-    owner: 'Document Retrieval Owner',
+    owner: 'Integration Lead',
     sourceRef: 'ARMS Pipeline Gateway',
     compute: (_s: AppState): MetricValue => {
       return {
@@ -229,7 +229,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     formula: 'hours since last MilPDS synchronization',
     target: '<= 24h',
     thresholds: { amber: 24, red: 48, direction: 'above' },
-    owner: 'Ingestion Process Owner',
+    owner: 'Data Engineer',
     sourceRef: 'MilPDS Service Gateway',
     compute: (_s: AppState): MetricValue => {
       return {
@@ -247,7 +247,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     formula: 'hours since last MyVector SOI pull',
     target: '<= 24h',
     thresholds: { amber: 24, red: 72, direction: 'above' },
-    owner: 'Boards Management Lead',
+    owner: 'BMO Lead',
     sourceRef: 'MyVector Talent Portal Gateway',
     compute: (_s: AppState): MetricValue => {
       return {
@@ -265,7 +265,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     formula: 'days since last SURF authoritative extract',
     target: '<= 1 day',
     thresholds: { amber: 1.0, red: 7.0, direction: 'above' },
-    owner: 'Document Retrieval Owner',
+    owner: 'Integration Lead',
     sourceRef: 'SURF Central Registry',
     compute: (_s: AppState): MetricValue => {
       return {
@@ -284,7 +284,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     unit: 'pts',
     formula: 'sum(all submitted scores) / total scored candidates',
     target: '6.0 to 10.0',
-    owner: 'Board Execution Lead',
+    owner: 'Scoring Engineer',
     sourceRef: 'Scoring Dock Aggregator',
     compute: (s: AppState): MetricValue => {
       const allScores = s.candidates.flatMap(c => c.scores.map(x => x.value));
@@ -298,7 +298,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     unit: 'pts',
     formula: 'sum(panel scores) / total scored on panel',
     target: '6.0 to 10.0',
-    owner: 'Board Execution Lead',
+    owner: 'Scoring Engineer',
     sourceRef: 'Scoring Dock Aggregator',
     compute: (s: AppState): MetricValue => {
       const allScores = s.candidates.flatMap(c => c.scores.map(x => x.value));
@@ -328,7 +328,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     unit: '%',
     formula: '% of an endorser’s unit candidates placed in Top 3 by that endorser',
     target: 'Baseline 18% Top 3 / 82% Other',
-    owner: 'Board Execution Lead',
+    owner: 'Scoring Engineer',
     sourceRef: 'Endorser Analysis Engine',
     compute: (_s: AppState): MetricValue => {
       return {
@@ -347,7 +347,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     unit: 'distribution',
     formula: 'share of DP, P, Non-Strat across candidate unit (normalized to 100%)',
     target: 'DP 29%, P 53%, Non-Strat 18%',
-    owner: 'Board Execution Lead',
+    owner: 'Scoring Engineer',
     sourceRef: 'Endorser Stratification Matrix',
     compute: (_s: AppState): MetricValue => {
       return {
@@ -366,7 +366,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     unit: '%',
     formula: '% of cycle candidates with "Ready" packages',
     target: '100% before start date',
-    owner: 'Boards Management Lead',
+    owner: 'BMO Lead',
     sourceRef: 'Readiness Assessment Engine',
     compute: (_s: AppState): MetricValue => {
       return {
@@ -386,7 +386,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     formula: '% of cycle candidates with missing core documents',
     target: '0% before start date',
     thresholds: { amber: 5, red: 10, direction: 'above' },
-    owner: 'Boards Management Lead',
+    owner: 'BMO Lead',
     sourceRef: 'Readiness Assessment Engine',
     compute: (_s: AppState): MetricValue => {
       return {
@@ -406,7 +406,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     formula: 'count(overdue command endorsement tasks)',
     target: '0',
     thresholds: { amber: 1, red: 3, direction: 'above' },
-    owner: 'Boards Management Lead',
+    owner: 'BMO Lead',
     sourceRef: 'Command Endorsement Action Tracker',
     compute: (s: AppState): MetricValue => {
       const overdue = s.commanderActions.filter(a => a.status === 'Pending' && new Date(a.due) < new Date('2026-10-26')).length;
@@ -427,7 +427,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     formula: 'verified documents (SOI + ROP + ARMS + SURF) / total required',
     target: '>= 95% to lock',
     thresholds: { amber: 90, red: 85, direction: 'below' },
-    owner: 'Document Assembly Owner',
+    owner: 'Board Recorder',
     sourceRef: 'Packet Completeness Gate Engine',
     compute: (s: AppState): MetricValue => {
       const completeCount = s.candidates.filter(c => c.packetReadiness.complete).length;
@@ -448,7 +448,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     unit: 'ratio',
     formula: 'assigned Board President, Panelists, Scribes',
     target: 'President assigned; Panelists 14/14',
-    owner: 'Boards Management Lead',
+    owner: 'BMO Lead',
     sourceRef: 'Staffing Slot Manifest',
     compute: (s: AppState): MetricValue => {
       const panelists = s.staffSlots.filter(sl => sl.role === 'Panelist');

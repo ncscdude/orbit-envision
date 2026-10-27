@@ -351,7 +351,7 @@ export function calculateCapabilityDegradation(
   const isKeyTalent = candidate.talent?.nBoxCell === 'Key Talent' || candidate.talent?.impactOfLoss === 'High';
 
   // Quantitative Impact score (0-100) based on M-602
-  let impactScore = 50;
+  let impactScore: number;
   if (candidate.talent?.impactOfLoss === 'High') impactScore = 88;
   else if (candidate.talent?.impactOfLoss === 'Medium') impactScore = 58;
   else impactScore = 30;

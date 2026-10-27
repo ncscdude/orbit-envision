@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useOrbit } from '../state/context';
-import { Candidate, Billet, MatchPair, MatchScenarioWeights } from '../types';
+import { MatchPair, MatchScenarioWeights } from '../types';
 import { AiBadge } from '../components/AiBadge';
 import {
   DEFAULT_WEIGHTS,
@@ -10,21 +10,12 @@ import {
 } from '../lib/match';
 import { runGaleShapleyMatching, runGreedyMatching } from '../lib/stable';
 import {
-  Sliders,
   CheckCircle2,
-  AlertTriangle,
-  RotateCcw,
   Sparkles,
   Download,
   Copy,
-  Layers,
-  ArrowRight,
-  ShieldCheck,
-  HelpCircle,
   X,
-  FileCheck,
-  TrendingDown,
-  Info
+  FileCheck
 } from 'lucide-react';
 
 export const ViewMatchLab: React.FC = () => {
@@ -237,7 +228,7 @@ DRAFT MEMORANDUM // FOR OFFICIAL USE ONLY // NOT FOR OPERATIONAL RELEASE`;
         ].map(t => (
           <button
             key={t.id}
-            onClick={() => setActiveTab(t.id as any)}
+            onClick={() => setActiveTab(t.id as typeof activeTab)}
             className={`px-3 py-1.5 rounded font-medium whitespace-nowrap transition-colors border ${
               activeTab === t.id
                 ? 'bg-cyan-950 text-cyan-300 border-cyan-500 font-semibold'

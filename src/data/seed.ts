@@ -1,7 +1,7 @@
 /**
  * Project ORBIT - Seed Data Generator
  * Mulberry32 PRNG Reproducible Seed
- * 36 candidates, 12 boards, 12 billets, 6 panelists, 8 endorsers, 4 source pipelines
+ * 36 candidates, 13 board cycles, 12 billets, 6 panelists, 8 endorsers, 4 source pipelines
  */
 
 import {
@@ -63,14 +63,15 @@ export const BOARDS_SEED: Board[] = [
   { id: 'BRD-002', name: 'CY26 O4/O5 DT Scoring', status: 'At Risk', startDate: '2026-11-16', lockDate: '2026-11-23', releaseDate: '2026-12-04', ownerId: 'BMO-LEAD', candidateCount: 28 },
   { id: 'BRD-003', name: 'DARPA SCFP Selection', status: 'Delayed', startDate: '2026-10-15', lockDate: '2026-10-22', releaseDate: '2026-11-06', ownerId: 'BMO-LEAD', candidateCount: 18 },
   { id: 'BRD-004', name: 'Space Test Course Selection', status: 'Complete', startDate: '2026-09-01', lockDate: '2026-09-10', releaseDate: '2026-09-25', ownerId: 'BMO-LEAD', candidateCount: 24 },
-  // Portfolio Boards (Status 6 On Track, 2 At Risk, 1 Delayed, 3 Complete)
+  // Portfolio cycles (computed on screen from status)
   { id: 'BRD-005', name: 'CY26 SDE Central Selection Board', status: 'On Track', startDate: '2026-12-01', lockDate: '2026-12-10', releaseDate: '2026-12-22', ownerId: 'BMO-LEAD', candidateCount: 42 },
-  { id: 'BRD-006', name: 'Space Squadron Command Board', status: 'On Track', startDate: '2027-01-11', lockDate: '2027-01-20', releaseDate: '2027-02-05', ownerId: 'BMO-LEAD', candidateCount: 50 },
+  { id: 'BRD-006', name: 'Space Squadron Command Board', status: 'At Risk', startDate: '2027-01-11', lockDate: '2027-01-20', releaseDate: '2027-02-05', ownerId: 'BMO-LEAD', candidateCount: 50 },
   { id: 'BRD-007', name: 'CY27 Astronaut & Test Pilot Nom', status: 'On Track', startDate: '2027-02-08', lockDate: '2027-02-18', releaseDate: '2027-03-01', ownerId: 'BMO-LEAD', candidateCount: 14 },
   { id: 'BRD-008', name: 'CY26 Acquisition Leadership Board', status: 'On Track', startDate: '2027-03-01', lockDate: '2027-03-12', releaseDate: '2027-03-26', ownerId: 'BMO-LEAD', candidateCount: 38 },
   { id: 'BRD-009', name: 'Cyber Space Force Specialty Board', status: 'At Risk', startDate: '2026-12-15', lockDate: '2026-12-24', releaseDate: '2027-01-10', ownerId: 'BMO-LEAD', candidateCount: 30 },
   { id: 'BRD-010', name: 'CY26 Senior Enlisted Key Billets', status: 'On Track', startDate: '2027-01-25', lockDate: '2027-02-05', releaseDate: '2027-02-18', ownerId: 'BMO-LEAD', candidateCount: 65 },
   { id: 'BRD-011', name: 'CY25 Fall SDE Secondary Release', status: 'Complete', startDate: '2026-08-10', lockDate: '2026-08-18', releaseDate: '2026-08-30', ownerId: 'BMO-LEAD', candidateCount: 20 },
+  { id: 'BRD-013', name: 'CY27 Olmsted Scholar Selection', status: 'On Track', startDate: '2027-04-05', lockDate: '2027-04-14', releaseDate: '2027-04-28', ownerId: 'BMO-LEAD', candidateCount: 16 },
   { id: 'BRD-012', name: 'CY25 Special Mission Delta Slate', status: 'Complete', startDate: '2026-07-05', lockDate: '2026-07-15', releaseDate: '2026-07-28', ownerId: 'BMO-LEAD', candidateCount: 22 }
 ];
 
@@ -1571,7 +1572,7 @@ export function generateRemainingCandidates(): Candidate[] {
     // idx 13: Stuck over 24h in Ingested (IDEA-001)
     // idx 14: Stuck over 24h in Validated (IDEA-001)
     // idx 15: Failed Ingest (hard integration error) (IDEA-001)
-    let stage: StageGate = 'Scoring';
+    let stage: StageGate;
     let failedIngest = false;
     let errors: string[] = [];
     let ingestedAt = '2026-10-24T09:00:00Z';
@@ -1595,7 +1596,7 @@ export function generateRemainingCandidates(): Candidate[] {
     } else if (idx === 15) {
       stage = 'Ingested';
       failedIngest = true; // Hard ingest failure
-      errors = ['HTTP 502 Bad Gateway: AFPC-ARMS Roster Ingestion socket drop', 'Missing authoritative digital signature'];
+      errors = ['HTTP 502 Bad Gateway: ARMS Roster Ingestion socket drop', 'Missing authoritative digital signature'];
       ingestedAt = '2026-10-26T18:00:00Z';
       validatedAt = undefined;
       lockedAt = undefined;
@@ -1755,24 +1756,23 @@ export const ALL_CANDIDATES_SEED: Candidate[] = [
   ...generateRemainingCandidates()
 ];
 
-// Milestones across 12 cycles (~200 milestones)
-// Preparation (94%), Eligibility (92%), Documents (88%), Execution (97%)
+// Milestones across all cycles, 2 per phase (computed on screen)
 export function generateMilestones(): Milestone[] {
   const result: Milestone[] = [];
   const phases = [
-    { p: 1 as const, name: 'Board Initiation Charter & Governance' },
-    { p: 2 as const, name: 'Preparation Milestones & Population Cut' },
-    { p: 3 as const, name: 'Eligibility Determination & Records Ingest' },
-    { p: 4 as const, name: 'Document Assembly & Packet Readiness Review' },
-    { p: 5 as const, name: 'Board Scoring & Active Evaluation Window' },
-    { p: 6 as const, name: 'OOM Calculation & Results Finalization' },
-    { p: 7 as const, name: 'Post-Board Matching & Slating Handoff' },
-    { p: 8 as const, name: 'Board Closeout & Lessons Learned Capture' }
+    { p: 1 as const, name: 'Cycle Stand-Up & Billet Validation' },
+    { p: 2 as const, name: 'PSDM Release & SOI Window' },
+    { p: 3 as const, name: 'Roster Intake & Limitation Code Review' },
+    { p: 4 as const, name: 'Record Prep & Freeze' },
+    { p: 5 as const, name: 'Record Scoring Window' },
+    { p: 6 as const, name: 'Order of Merit Build & Certification' },
+    { p: 7 as const, name: 'Matching, Placement & Waivers' },
+    { p: 8 as const, name: 'Results PSDM & AAR' }
   ];
 
   BOARDS_SEED.forEach(b => {
     phases.forEach((ph, pIdx) => {
-      // 2 milestones per phase = 16 per board * 12 = 192 milestones
+      // 2 milestones per phase = 16 per cycle
       for (let m = 1; m <= 2; m++) {
         const id = `MS-${b.id}-${ph.p}-${m}`;
         let status: 'Done' | 'On Track' | 'At Risk' | 'Delayed' = 'On Track';
@@ -1794,7 +1794,7 @@ export function generateMilestones(): Milestone[] {
           boardId: b.id,
           phase: ph.p,
           name: `${ph.name} Part ${m}`,
-          owner: ph.p <= 2 ? 'Boards Management Lead' : ph.p === 3 ? 'Ingestion/Eligibility Owner' : ph.p === 4 ? 'Document Assembly Owner' : 'Board Execution Lead',
+          owner: ph.p <= 2 ? 'BMO Lead' : ph.p === 3 ? 'Data Engineer' : ph.p === 4 ? 'Board Recorder' : 'Scoring Engineer',
           planned: `2026-${(10 + Math.floor(pIdx / 2)).toString().padStart(2, '0')}-15`,
           actual: status === 'Done' ? `2026-${(10 + Math.floor(pIdx / 2)).toString().padStart(2, '0')}-14` : null,
           dependsOn: m === 2 ? [`MS-${b.id}-${ph.p}-1`] : pIdx > 0 ? [`MS-${b.id}-${phases[pIdx - 1].p}-2`] : [],
@@ -1808,13 +1808,13 @@ export function generateMilestones(): Milestone[] {
 }
 
 export const RISKS_SEED: Risk[] = [
-  // 6 Open issues: 3 < 30 days, 2 30-60 days, 1 > 60 days
+  // Open items: age buckets computed on screen
   {
     id: 'RSK-001',
     boardId: 'BRD-001',
     type: 'Issue',
     title: 'ARMS Authoritative Socket Timeout During Peak Population Pull',
-    owner: 'Boards Management Lead',
+    owner: 'BMO Lead',
     opened: '2026-10-15', // 11 days ago (<30d)
     suspense: '2026-11-01',
     mitigation: 'Implemented automated retry daemon and fallback to cached packet manifest.',
@@ -1826,7 +1826,7 @@ export const RISKS_SEED: Risk[] = [
     boardId: 'BRD-002',
     type: 'Risk',
     title: 'Panelist Quorum Conflict with Space Warfighter Conference',
-    owner: 'Board Execution Lead',
+    owner: 'Scoring Engineer',
     opened: '2026-10-20', // 6 days ago (<30d)
     suspense: '2026-11-10',
     mitigation: 'Secured 3 alternate evaluators from STARCOM Delta 1.',
@@ -1838,8 +1838,8 @@ export const RISKS_SEED: Risk[] = [
     boardId: 'BRD-003',
     type: 'Change',
     title: 'DARPA Billet Re-scoping for Cislunar Orbital Defense',
-    owner: 'Assignments/Activation Process Owner',
-    opened: '2026-10-10', // 16 days ago (<30d)
+    owner: 'Assignments Officer',
+    opened: '2026-09-20', // 36 days ago (30-60d)
     suspense: '2026-10-30',
     mitigation: 'Updated DAFSC eligibility filter to include 61C3.',
     escalate: false,
@@ -1850,7 +1850,7 @@ export const RISKS_SEED: Risk[] = [
     boardId: 'BRD-002',
     type: 'Issue',
     title: 'Missing Joint Staff Endorsement Memos for 4 OCONUS Candidates',
-    owner: 'Document Retrieval Owner',
+    owner: 'Integration Lead',
     opened: '2026-09-15', // 41 days ago (30-60d) -> Attention!
     suspense: '2026-10-31',
     mitigation: 'Overdue commander notification dispatched; follow-up escalated to S1.',
@@ -1862,7 +1862,7 @@ export const RISKS_SEED: Risk[] = [
     boardId: 'BRD-003',
     type: 'Issue',
     title: 'eBOSS Ingestion Template Schema Divergence on Space Cyber Certs',
-    owner: 'Ingestion/Eligibility Process Owner',
+    owner: 'Data Engineer',
     opened: '2026-09-08', // 48 days ago (30-60d) -> Attention!
     suspense: '2026-10-25',
     mitigation: 'Manual schema alignment patch undergoing integration testing.',
@@ -1874,7 +1874,7 @@ export const RISKS_SEED: Risk[] = [
     boardId: 'BRD-009',
     type: 'Issue',
     title: 'Adverse Action Limitation Code Resolution Stall (Over 60 Days)',
-    owner: 'Boards Management Lead',
+    owner: 'BMO Lead',
     opened: '2026-08-12', // 75 days ago (>60d) -> High Attention!
     suspense: '2026-09-30',
     mitigation: 'Immediate S1 adjudication conference required; holding slate lock.',
@@ -1900,10 +1900,10 @@ export const RISKS_SEED: Risk[] = [
     boardId: 'BRD-011',
     type: 'Issue',
     title: 'MilPDS TAFCSD Calculation Glitch on Prior Service Transfers',
-    owner: 'Boards Management Lead',
+    owner: 'BMO Lead',
     opened: '2026-07-10',
     suspense: '2026-07-20',
-    mitigation: 'Data reconciliation completed with AFPC.',
+    mitigation: 'Data reconciliation completed with the ARMS data owner.',
     resolutionDate: '2026-07-18',
     escalate: false,
     status: 'Closed'
@@ -1944,7 +1944,7 @@ export const IMPROVEMENT_ACTIONS_SEED: ImprovementAction[] = [
     id: 'IMP-01',
     phase: 2,
     title: 'Automate eBOSS Population Cut Notification Dispatch',
-    owner: 'Boards Management Lead',
+    owner: 'BMO Lead',
     due: '2026-11-15',
     done: false,
     lessonLearned: 'Manual notifications resulted in 3-day delay during CY25 Fall Board.'
@@ -1953,7 +1953,7 @@ export const IMPROVEMENT_ACTIONS_SEED: ImprovementAction[] = [
     id: 'IMP-02',
     phase: 4,
     title: 'Standardize Multi-Source Packet Hash Verification Protocol',
-    owner: 'Document Assembly Owner',
+    owner: 'Board Recorder',
     due: '2026-10-30',
     done: true,
     lessonLearned: 'Discrepant document hashes between ARMS and SURF slowed packet lock.'
@@ -1962,7 +1962,7 @@ export const IMPROVEMENT_ACTIONS_SEED: ImprovementAction[] = [
     id: 'IMP-03',
     phase: 5,
     title: 'Implement Live Anti-Anchoring Guard on Evaluation Docks',
-    owner: 'Board Execution Lead',
+    owner: 'Scoring Engineer',
     due: '2026-10-20',
     done: true,
     lessonLearned: 'Evaluator visibility into model score prior to rating skewed initial grades.'
@@ -1971,7 +1971,7 @@ export const IMPROVEMENT_ACTIONS_SEED: ImprovementAction[] = [
     id: 'IMP-04',
     phase: 7,
     title: 'Post-Board Slating Automated Cascade Notification Engine',
-    owner: 'Assignments/Activation Process Owner',
+    owner: 'Assignments Officer',
     due: '2026-12-01',
     done: false,
     lessonLearned: 'Candidate declinations triggered manual phone cascades taking over 14 days.'
@@ -2024,7 +2024,7 @@ export const SAMPLE_CANONICAL_FILES: CanonicalFileRecord[] = [
     canonicalName: '04SURF_20261014_single-unified-record-export.xlsx',
     targetNode: '04SURF',
     checkResult: 'PASS',
-    reason: 'Authoritative data schema matches AFPC standard tables',
+    reason: 'Authoritative data schema matches ARMS standard tables',
     committed: false
   },
   {

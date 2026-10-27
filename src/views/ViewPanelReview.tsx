@@ -1,17 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useOrbit } from '../state/context';
-import { Candidate, Billet } from '../types';
+import { Candidate } from '../types';
 import { AiBadge } from '../components/AiBadge';
 import { cosineSimilarity } from '../lib/stats';
 import {
   FileText,
   Award,
   Layers,
-  GraduationCap,
   Sparkles,
   ShieldCheck,
   CheckCircle2,
-  Clock,
   Flag,
   ChevronLeft,
   ChevronRight,
@@ -19,13 +17,11 @@ import {
   AlertTriangle,
   Send,
   ExternalLink,
-  BookOpen,
-  PieChart as PieIcon,
   BarChart3
 } from 'lucide-react';
 
 export const ViewPanelReview: React.FC = () => {
-  const { state, dispatch, useMetric } = useOrbit();
+  const { state, dispatch } = useOrbit();
   const [activeLens, setActiveLens] = useState<number>(1);
   const [selectedScore, setSelectedScore] = useState<number | null>(null);
   const [flagModalOpen, setFlagModalOpen] = useState(false);

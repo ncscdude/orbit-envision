@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, BookOpen, ChevronRight, CheckCircle, ArrowRight } from 'lucide-react';
+import { X, BookOpen, ArrowRight } from 'lucide-react';
 
 interface DemoGuideDrawerProps {
   open: boolean;
@@ -15,13 +15,13 @@ export const DemoGuideDrawer: React.FC<DemoGuideDrawerProps> = ({ open, onClose,
       num: '01',
       title: 'Command Center & 8-Phase Bar',
       viewId: 'VIEW-CommandCenter',
-      instruction: 'Observe the 4 executive cards, click Phase 3 (Ingestion & Eligibility) on the 8-phase bar to filter KPIs, and note how the health dot updates.'
+      instruction: 'Observe the 4 executive cards, click Phase 3 (Roster Intake) on the 8-phase bar to filter KPIs, and note how the health dot updates.'
     },
     {
       num: '02',
       title: 'Drill from Late KPI to Candidates',
       viewId: 'VIEW-CommandCenter',
-      instruction: 'In the KPI catalog table, click "Drill to candidates" beside Packet Completeness Rate (K-03) or click Active Boards to jump straight into the candidate review queue.'
+      instruction: 'In the KPI catalog table, click "Drill to candidates" beside Packet Completeness (K-03) or click Active Boards to jump straight into the candidate review queue.'
     },
     {
       num: '03',

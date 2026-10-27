@@ -1,21 +1,17 @@
 import React, { useState } from 'react';
 import { useOrbit } from '../state/context';
-import { Candidate, SourcePipeline } from '../types';
+import { Candidate } from '../types';
 import { MetricPopover } from '../components/MetricPopover';
 import {
-  Cpu,
   Activity,
   CheckCircle2,
   AlertTriangle,
-  RotateCcw,
   Clock,
   Layers,
   ArrowRight,
-  ShieldCheck,
   TrendingUp,
   Lock,
   UserCheck,
-  ExternalLink,
   RefreshCw,
   AlertCircle
 } from 'lucide-react';
@@ -25,7 +21,6 @@ export const ViewHeliosCommand: React.FC = () => {
   const { state, dispatch, useMetric } = useOrbit();
   const [activeSubTab, setActiveSubTab] = useState<'A' | 'B' | 'C'>('A');
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
-  const [expandedPipeline, setExpandedPipeline] = useState<string | null>(null);
 
   // Metrics lookup
   const m101 = useMetric('M-101');
@@ -41,14 +36,9 @@ export const ViewHeliosCommand: React.FC = () => {
   const m204 = useMetric('M-204');
   const m205 = useMetric('M-205');
 
-  const m301 = useMetric('M-301');
-  const m302 = useMetric('M-302');
-  const m303 = useMetric('M-303');
-  const m304 = useMetric('M-304');
 
   const m501 = useMetric('M-501');
   const m502 = useMetric('M-502');
-  const m503 = useMetric('M-503');
   const m504 = useMetric('M-504');
   const m505 = useMetric('M-505');
 
@@ -357,7 +347,7 @@ export const ViewHeliosCommand: React.FC = () => {
                             <span>{c.name}</span>
                           </div>
                           <span className="text-[10px] text-slate-400 font-mono block mt-0.5">
-                            {c.flow.errors[0] || 'AFPC socket failure'}
+                            {c.flow.errors[0] || 'ARMS socket failure'}
                           </span>
                         </div>
                         <button

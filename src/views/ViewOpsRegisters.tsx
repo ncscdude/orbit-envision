@@ -1,18 +1,10 @@
 import React, { useState } from 'react';
 import { useOrbit } from '../state/context';
-import { Milestone, Risk, ImprovementAction } from '../types';
+import { Milestone, Risk } from '../types';
 import {
-  Calendar,
-  AlertTriangle,
-  FileText,
   Download,
   Plus,
-  CheckCircle2,
-  Clock,
-  ExternalLink,
-  Edit2,
-  Save,
-  X
+  Edit2
 } from 'lucide-react';
 
 export const ViewOpsRegisters: React.FC = () => {
@@ -21,17 +13,17 @@ export const ViewOpsRegisters: React.FC = () => {
   const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
   const [editingRisk, setEditingRisk] = useState<Risk | null>(null);
 
-  // New Improvement Action modal state
+  // New AAR item modal state
   const [newImprovementModalOpen, setNewImprovementModalOpen] = useState(false);
   const [impPhase, setImpPhase] = useState<number>(8);
   const [impTitle, setImpTitle] = useState('');
-  const [impOwner, setImpOwner] = useState('Boards Management Lead');
+  const [impOwner] = useState('BMO Lead');
   const [impDue, setImpDue] = useState('2026-12-15');
   const [impLesson, setImpLesson] = useState('');
 
   const canEdit = state.currentRole === 'Board Recorder' || state.currentRole === 'BMO Lead';
 
-  const exportCsv = (filename: string, rows: Record<string, any>[]) => {
+  const exportCsv = <T extends object>(filename: string, rows: T[]) => {
     if (rows.length === 0) return;
     const headers = Object.keys(rows[0]).join(',');
     const csvContent = [headers, ...rows.map(r => Object.values(r).map(v => `"${v}"`).join(','))].join('\n');
@@ -43,7 +35,7 @@ export const ViewOpsRegisters: React.FC = () => {
     a.click();
   };
 
-  const handleSaveMilestone = () => {
+  const _handleSaveMilestone = () => {
     if (!editingMilestone) return;
     dispatch({
       type: 'UPDATE_MILESTONE',
@@ -57,7 +49,7 @@ export const ViewOpsRegisters: React.FC = () => {
     setEditingMilestone(null);
   };
 
-  const handleSaveRisk = () => {
+  const _handleSaveRisk = () => {
     if (!editingRisk) return;
     dispatch({
       type: 'UPDATE_RISK',
@@ -101,7 +93,7 @@ export const ViewOpsRegisters: React.FC = () => {
             </span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
-            Structured tracking tables for milestones, risks/issues, phase 8 improvement actions, and readiness data.
+            Structured tracking tables for milestones, risks/issues, phase 8 AAR items, and packet data.
           </p>
         </div>
 
@@ -114,15 +106,15 @@ export const ViewOpsRegisters: React.FC = () => {
       <div className="flex items-center gap-1 border-b border-[#1e2d45] pb-2 overflow-x-auto text-xs scrollbar-none">
         {[
           { id: 'milestones', label: '1. Milestones (Gantt Planned vs Actual)' },
-          { id: 'risks', label: '2. Risk / Issue / Change Register' },
-          { id: 'improvements', label: '3. Improvement Actions & Lessons (Phase 8)' },
-          { id: 'boards', label: '4. Board Register' },
-          { id: 'readiness', label: '5. Candidate / Packet Readiness' },
-          { id: 'results', label: '6. Results & Post-Board Register' }
+          { id: 'risks', label: '2. Risk, Issue & Change Log' },
+          { id: 'improvements', label: '3. AAR Items (Phase 8)' },
+          { id: 'boards', label: '4. Cycle Log' },
+          { id: 'readiness', label: '5. Packet Check' },
+          { id: 'results', label: '6. Results & Placement' }
         ].map(t => (
           <button
             key={t.id}
-            onClick={() => setActiveTab(t.id as any)}
+            onClick={() => setActiveTab(t.id as typeof activeTab)}
             className={`px-3 py-1.5 rounded font-medium whitespace-nowrap transition-colors border ${
               activeTab === t.id
                 ? 'bg-cyan-950 text-cyan-300 border-cyan-500 font-semibold'
@@ -279,12 +271,12 @@ export const ViewOpsRegisters: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 3: IMPROVEMENT ACTIONS & LESSONS (Phase 8) */}
+      {/* TAB 3: AAR ITEMS (Phase 8) */}
       {activeTab === 'improvements' && (
         <div className="bg-[#0a1020] border border-[#1e2d45] rounded-md p-5 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#1e2d45] pb-3">
             <div>
-              <h3 className="font-bold text-white text-sm">Phase 8 Improvement Actions & Lessons Learned</h3>
+              <h3 className="font-bold text-white text-sm">Phase 8 AAR Items</h3>
               <p className="text-xs text-slate-400">
                 Continuous improvement register tracking post-board lessons and workflow remediations (K-11).
               </p>
@@ -296,7 +288,7 @@ export const ViewOpsRegisters: React.FC = () => {
                 onClick={() => setNewImprovementModalOpen(true)}
                 className="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-black bg-cyan-500 hover:bg-cyan-400 rounded transition-colors shadow-sm"
               >
-                <Plus className="w-3.5 h-3.5" /> Log Improvement Action
+                <Plus className="w-3.5 h-3.5" /> Log AAR Item
               </button>
             </div>
           </div>
@@ -391,7 +383,7 @@ export const ViewOpsRegisters: React.FC = () => {
       {activeTab === 'readiness' && (
         <div className="bg-[#0a1020] border border-[#1e2d45] rounded-md p-5 space-y-4">
           <div className="flex justify-between items-center border-b border-[#1e2d45] pb-3">
-            <h3 className="font-bold text-white text-sm">Candidate / Packet Readiness Register</h3>
+            <h3 className="font-bold text-white text-sm">Packet Check</h3>
             <button
               onClick={() => exportCsv('orbit_readiness.csv', state.candidates.map(c => ({ id: c.id, name: c.name, complete: c.packetReadiness.complete })))}
               className="flex items-center gap-1.5 px-3 py-1 text-xs text-slate-300 bg-[#05080f] border border-[#1e2d45] rounded hover:text-white"
@@ -477,7 +469,7 @@ export const ViewOpsRegisters: React.FC = () => {
       {newImprovementModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs">
           <div className="bg-[#0a1020] border border-[#1e2d45] rounded-md p-5 w-full max-w-md shadow-2xl space-y-4">
-            <h3 className="font-semibold text-white text-sm">Log Phase 8 Improvement Action</h3>
+            <h3 className="font-semibold text-white text-sm">Log Phase 8 AAR Item</h3>
 
             <div className="space-y-1.5 text-xs">
               <label className="text-slate-300 font-semibold block">Action Title:</label>

@@ -19,29 +19,21 @@ import {
   Layers,
   ArrowRight,
   ShieldAlert,
-  FileText,
   X,
-  Lock,
   ChevronRight,
   Save,
   Calculator,
   DollarSign,
-  TrendingUp,
-  Target,
   Filter,
   RotateCcw,
-  CheckCircle2,
   AlertCircle,
-  HelpCircle,
   Sliders,
   Flame,
   Briefcase,
   GitCompare,
-  TrendingDown,
   UserX,
   BarChart3,
   LayoutGrid,
-  Zap,
   Activity
 } from 'lucide-react';
 
@@ -77,27 +69,6 @@ export const ViewCareerPlanner: React.FC = () => {
   const [filterReadiness, setFilterReadiness] = useState<string>('All');
   const [filterRiskTier, setFilterRiskTier] = useState<string>('All');
   const [filterImpactTier, setFilterImpactTier] = useState<string>('All');
-
-  // FIREWALL RULE 5 ENFORCEMENT:
-  // Hidden from Panelist role completely
-  if (state.currentRole === 'Panelist') {
-    return (
-      <div className="p-8 text-center bg-[#0a1020] border border-red-900/60 rounded-md max-w-xl mx-auto my-12 space-y-4 shadow-2xl">
-        <div className="w-12 h-12 rounded-full bg-red-950/80 border border-red-800 flex items-center justify-center mx-auto text-red-400">
-          <ShieldAlert className="w-6 h-6" />
-        </div>
-        <div>
-          <h2 className="text-lg font-bold text-white">ACCESS RESTRICTED — FIREWALL RULE 5</h2>
-          <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-            Post-board strategic talent data (Risk of Loss, Impact of Loss, Talent Score, N-Box, Loss Calculator, and Advancement Readiness) is strictly firewalled from active Panelist evaluators to prevent evaluation bias.
-          </p>
-        </div>
-        <div className="p-3 bg-[#05080f] rounded border border-[#1e2d45] text-xs font-mono text-cyan-400">
-          Switch role to "CFM / Career Planner" or "Assignments Officer" in top-right header to view strategic talent pipelines.
-        </div>
-      </div>
-    );
-  }
 
   // Eligible pool: candidates with talent records
   const allTalentCandidates = useMemo(() => {
@@ -250,6 +221,27 @@ export const ViewCareerPlanner: React.FC = () => {
     return allTalentCandidates.filter(c => c.talent?.nBoxCell === 'Key Talent');
   }, [allTalentCandidates]);
 
+  // FIREWALL RULE 5 ENFORCEMENT:
+  // Hidden from Panelist role completely
+  if (state.currentRole === 'Panelist') {
+    return (
+      <div className="p-8 text-center bg-[#0a1020] border border-red-900/60 rounded-md max-w-xl mx-auto my-12 space-y-4 shadow-2xl">
+        <div className="w-12 h-12 rounded-full bg-red-950/80 border border-red-800 flex items-center justify-center mx-auto text-red-400">
+          <ShieldAlert className="w-6 h-6" />
+        </div>
+        <div>
+          <h2 className="text-lg font-bold text-white">ACCESS RESTRICTED — FIREWALL RULE 5</h2>
+          <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+            Post-board strategic talent data (Risk of Loss, Impact of Loss, Talent Score, N-Box, Loss Calculator, and Advancement Readiness) is strictly firewalled from active Panelist evaluators to prevent evaluation bias.
+          </p>
+        </div>
+        <div className="p-3 bg-[#05080f] rounded border border-[#1e2d45] text-xs font-mono text-cyan-400">
+          Switch role to "CFM / Career Planner" or "Assignments Officer" in top-right header to view strategic talent pipelines.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Header & Sub-Tab Switcher */}
@@ -333,7 +325,7 @@ export const ViewCareerPlanner: React.FC = () => {
             ].map(layer => (
               <button
                 key={layer.id}
-                onClick={() => setActiveLayer(layer.id as any)}
+                onClick={() => setActiveLayer(layer.id as typeof activeLayer)}
                 className={`px-2 py-0.5 rounded font-mono text-[10px] transition-colors border ${
                   activeLayer === layer.id
                     ? 'bg-purple-950 text-purple-300 border-purple-500 font-bold'

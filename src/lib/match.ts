@@ -74,7 +74,7 @@ export function computeCandidateScore(
   else if (cand.soi.preferences.willingOCONUS && billet.oconus) candidatePrefScore += 20;
 
   // Billet priority weight
-  let billetPriorityScore = 50;
+  let billetPriorityScore: number;
   if (billet.priority === 'Critical') billetPriorityScore = 100;
   else if (billet.priority === 'High') billetPriorityScore = 80;
   else billetPriorityScore = 60;

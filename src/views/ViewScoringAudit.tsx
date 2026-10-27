@@ -3,15 +3,8 @@ import { useOrbit } from '../state/context';
 import { Candidate } from '../types';
 import {
   AlertTriangle,
-  RotateCcw,
   CheckCircle2,
-  ShieldAlert,
-  ArrowRight,
-  HelpCircle,
-  FileText,
-  Lock,
-  Unlock,
-  AlertCircle
+  ShieldAlert
 } from 'lucide-react';
 
 export const ViewScoringAudit: React.FC = () => {

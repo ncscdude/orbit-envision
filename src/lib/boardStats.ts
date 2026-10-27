@@ -4,10 +4,10 @@
  * scoring analytics, and enforces board-level role permissions and firewalls.
  */
 
-import { AppState, BoardStatistics, BoardRolePermission, Role, Candidate } from '../types';
+import { AppState, BoardStatistics, BoardRolePermission, Role } from '../types';
 
 /**
- * Computes detailed operational and scoring statistics for any individual board (BRD-001..BRD-012).
+ * Computes detailed operational and scoring statistics for any individual board (every BRD cycle).
  */
 export function computeBoardStatistics(boardId: string, state: AppState): BoardStatistics {
   const board = state.boards.find(b => b.id === boardId) || state.boards[0];
@@ -27,7 +27,7 @@ export function computeBoardStatistics(boardId: string, state: AppState): BoardS
   let pendingCount = 0;
   let flaggedCount = 0;
   let poolScores: number[] = [];
-  let userScores: number[] = [];
+  const userScores: number[] = [];
   let exceptionsCount = 0;
   let eligibleCount = 0;
   let docsCompleteCount = 0;
@@ -162,7 +162,7 @@ export function computeBoardStatistics(boardId: string, state: AppState): BoardS
   const msRate = boardMilestones.length > 0 ? Math.round((doneMs / boardMilestones.length) * 100) : 75;
 
   // Determine current active phase
-  let currentPhase = 1;
+  let currentPhase: number;
   if (board.status === 'Complete') {
     currentPhase = 8;
   } else if (stageCounts.finalized > 0 && stageCounts.scoring === 0) {
@@ -397,7 +397,7 @@ export function getBoardRolePermissions(role: Role): BoardRolePermission {
         role,
         accessLevel: 'EXECUTIVE_READONLY',
         title: 'Executive Strategic Oversight (Read-Only)',
-        badgeColor: '#2B6CB0',
+        badgeColor: '#2E86AB',
         canLockPopulation: false,
         canCertifyOom: false,
         canScoreCandidates: false,

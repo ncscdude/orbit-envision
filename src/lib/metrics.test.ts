@@ -3,12 +3,13 @@
  * Uses node:test and node:assert/strict
  */
 
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { cosineSimilarity, calculateLinearSlope } from './stats';
 import { computeCandidateScore, DEFAULT_WEIGHTS } from './match';
-import { runGaleShapleyMatching, runGreedyMatching } from './stable';
+import { runGaleShapleyMatching } from './stable';
 import { createDeltaEntry, verifyChain } from '../state/delta';
+import type { DeltaEntry } from '../types';
 import { ALL_CANDIDATES_SEED, BILLETS_SEED } from '../data/seed';
 
 test('cosineSimilarity calculates exact dot product for normalized vectors', () => {
@@ -32,7 +33,7 @@ test('calculateLinearSlope correctly measures positive throughput trend', () => 
 });
 
 test('createDeltaEntry appends valid cryptographic hash and chain verification passes', () => {
-  const entries: any[] = [];
+  const entries: DeltaEntry[] = [];
   const e1 = createDeltaEntry(entries, 'Col Marcus Vance', 'Panelist', 'PDO-001', 'SCORE_SUBMIT', 'Submitted score 9.0', { value: 9.0 });
   entries.push(e1);
   const e2 = createDeltaEntry(entries, 'Lt Col Elena Rostova', 'Panelist', 'PDO-001', 'SCORE_SUBMIT', 'Submitted score 8.5', { value: 8.5 });
@@ -46,7 +47,7 @@ test('createDeltaEntry appends valid cryptographic hash and chain verification p
 });
 
 test('verifyChain detects tampering in DELTA chain', () => {
-  const entries: any[] = [];
+  const entries: DeltaEntry[] = [];
   const e1 = createDeltaEntry(entries, 'Col Marcus Vance', 'Panelist', 'PDO-001', 'SCORE_SUBMIT', 'Submitted score 9.0');
   entries.push(e1);
   const e2 = createDeltaEntry(entries, 'Lt Col Elena Rostova', 'Panelist', 'PDO-001', 'SCORE_SUBMIT', 'Submitted score 8.5');

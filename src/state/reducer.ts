@@ -3,7 +3,7 @@
  * Persists to localStorage with try/catch; all meaningful actions log to DELTA
  */
 
-import { AppState, Role, DeltaEntry, MatchPair, MatchScenarioWeights, Milestone, Risk, KpiCatalogItem, CanonicalFileRecord } from '../types';
+import { AppState, Role, DeltaEntry, MatchPair, MatchScenarioWeights, Milestone, Risk } from '../types';
 import { ALL_CANDIDATES_SEED, BILLETS_SEED, BOARDS_SEED, generateMilestones, RISKS_SEED, SOURCE_PIPELINES_SEED, ENDORSERS_SEED, STAFF_SLOTS_SEED, COMMANDER_ACTIONS_SEED, IMPROVEMENT_ACTIONS_SEED, SAMPLE_CANONICAL_FILES } from '../data/seed';
 import { INITIAL_KPIS } from '../data/kpis';
 import { createDeltaEntry } from './delta';
@@ -866,7 +866,7 @@ export function appReducer(state: AppState, action: Action): AppState {
         state.currentRole,
         newAction.id,
         'IMPROVEMENT_ACTION',
-        `Added Phase 8 Improvement Action: "${newAction.title}"`,
+        `Added Phase 8 AAR item: "${newAction.title}"`,
         newAction
       );
 

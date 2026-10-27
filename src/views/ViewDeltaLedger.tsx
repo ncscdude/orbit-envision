@@ -1,24 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { useOrbit } from '../state/context';
-import { DeltaEntry, CanonicalFileRecord } from '../types';
 import { verifyChain } from '../state/delta';
 import {
   ShieldCheck,
   ShieldAlert,
   Search,
   Download,
-  Filter,
   Clock,
-  RotateCcw,
-  FileText,
   Upload,
   FolderTree,
-  CheckCircle2,
-  AlertTriangle,
-  XCircle,
-  Play,
-  Pause,
-  ArrowRight
+  CheckCircle2
 } from 'lucide-react';
 
 export const ViewDeltaLedger: React.FC = () => {
@@ -33,7 +24,6 @@ export const ViewDeltaLedger: React.FC = () => {
   const [replaySliderVal, setReplaySliderVal] = useState<number>(state.ledger.length);
 
   // File canonicalizer routing node filter
-  const [selectedNode, setSelectedNode] = useState('ALL');
 
   const verification = useMemo(() => {
     return verifyChain(state.ledger);
@@ -88,7 +78,7 @@ export const ViewDeltaLedger: React.FC = () => {
 
   const sharePointNodes = [
     { code: '00SRT', label: '00SRT — Sorting Ingest Buffer' },
-    { code: '01INT', label: '01INT — Board Initiation & Governance' },
+    { code: '01INT', label: '01INT: Intake & Cycle Stand-Up' },
     { code: '02SOI', label: '02SOI — Candidate Statements of Intent' },
     { code: '03ROP', label: '03ROP — Evaluation Reports (ROPs)' },
     { code: '04SURF', label: '04SURF — Single Record Files' },

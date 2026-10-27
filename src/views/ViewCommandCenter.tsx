@@ -4,7 +4,6 @@ import { MetricPopover } from '../components/MetricPopover';
 import {
   Calendar,
   AlertTriangle,
-  Clock,
   Printer,
   Search,
   ExternalLink,
@@ -12,9 +11,7 @@ import {
   Layers,
   ArrowRight,
   TrendingUp,
-  Cpu,
-  CheckCircle2,
-  AlertCircle
+  Cpu
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 
@@ -28,23 +25,46 @@ export const ViewCommandCenter: React.FC = () => {
 
   // 8 Phases definition
   const phases = [
-    { num: 1, name: 'Board Initiation', scope: 'Establish board cycle, population, governance, owner, and initial schedule.', count: 0, health: 'green' },
-    { num: 2, name: 'Preparation', scope: 'Plan milestones, coordinate requirements, and prepare board execution.', count: 0, health: 'green' },
-    { num: 3, name: 'Ingestion & Eligibility', scope: 'Ingest submissions, validate candidate information, and determine eligibility.', count: state.candidates.filter(c => c.flow.stage === 'Ingested' || c.flow.stage === 'Validated').length, health: 'amber' },
-    { num: 4, name: 'Document Assembly / eBOSS Setup', scope: 'Retrieve documents, validate packets, and prepare records for review.', count: state.candidates.filter(c => c.flow.stage === 'Locked').length, health: 'green' },
-    { num: 5, name: 'Scoring & Board Execution', scope: 'Review, score, assess, and capture board decisions and rationale.', count: state.candidates.filter(c => c.flow.stage === 'Scoring').length, health: 'green' },
-    { num: 6, name: 'OOM / Results Finalization', scope: 'Finalize Order of Merit outputs, validate results, and prepare release.', count: state.candidates.filter(c => c.flow.stage === 'Finalized').length, health: 'green' },
-    { num: 7, name: 'Post-Board Matching & Activations', scope: 'Complete handoffs, matching, activations, declinations, and deferments.', count: 0, health: 'green' },
-    { num: 8, name: 'Closeout, Lessons Learned & KPI Reporting', scope: 'Resolve issues, capture improvement actions, and report performance.', count: 0, health: 'green' }
+    { num: 1, name: 'Cycle Stand-Up', scope: 'Confirm billets and population, name the board president, open the cycle.', count: 0, health: 'green' },
+    { num: 2, name: 'Solicitation & Planning', scope: 'Release the PSDM, open the SOI window, set the cycle schedule.', count: 0, health: 'green' },
+    { num: 3, name: 'Roster Intake', scope: 'Run PIPE-Ingest-Roster, auto-flag limitation codes, confirm who is in.', count: state.candidates.filter(c => c.flow.stage === 'Ingested' || c.flow.stage === 'Validated').length, health: 'amber' },
+    { num: 4, name: 'Record Prep & Freeze', scope: 'Pull SOI, ROP, ARMS, and SURF data, close packet gaps, freeze records.', count: state.candidates.filter(c => c.flow.stage === 'Locked').length, health: 'green' },
+    { num: 5, name: 'Record Scoring', scope: 'Panel scores records; Heartburn Review checks outliers (Req 150).', count: state.candidates.filter(c => c.flow.stage === 'Scoring').length, health: 'green' },
+    { num: 6, name: 'Order of Merit', scope: 'Build and certify the Order of Merit from verified scores.', count: state.candidates.filter(c => c.flow.stage === 'Finalized').length, health: 'green' },
+    { num: 7, name: 'Matching & Placement', scope: 'Run PIPE-Match-Run (Req 149), review exceptions, adjudicate waivers.', count: 0, health: 'green' },
+    { num: 8, name: 'Results Release & AAR', scope: 'Publish the results PSDM, close the audit package, draft the AAR.', count: 0, health: 'green' }
   ];
 
-  // Board Status Donut Data
+  // Cycle status donut data
+  const statusCount = (s: string) => state.boards.filter(b => b.status === s).length;
   const boardStatusData = [
-    { name: 'On Track', value: 6, color: '#00ff88' },
-    { name: 'At Risk', value: 2, color: '#ffb800' },
-    { name: 'Delayed', value: 1, color: '#ff4757' },
-    { name: 'Complete', value: 3, color: '#2B6CB0' }
+    { name: 'On Track', value: statusCount('On Track'), color: '#00ff88' },
+    { name: 'At Risk', value: statusCount('At Risk'), color: '#ffb800' },
+    { name: 'Delayed', value: statusCount('Delayed'), color: '#ff4757' },
+    { name: 'Complete', value: statusCount('Complete'), color: '#2E86AB' }
   ];
+
+  // Schedule adherence, computed from the milestone log
+  const pctOnTrack = (list: { status: string }[]) =>
+    list.length === 0 ? 0 : Math.round((100 * list.filter(m => m.status === 'Done' || m.status === 'On Track').length) / list.length);
+  const scheduleOnTrackPct = pctOnTrack(state.milestones);
+  const scheduleByGroup = [
+    { label: 'Planning', pct: pctOnTrack(state.milestones.filter(m => m.phase <= 2)) },
+    { label: 'Roster Intake', pct: pctOnTrack(state.milestones.filter(m => m.phase === 3)) },
+    { label: 'Record Prep', pct: pctOnTrack(state.milestones.filter(m => m.phase === 4)) },
+    { label: 'Scoring', pct: pctOnTrack(state.milestones.filter(m => m.phase === 5)) }
+  ].map(g => ({ ...g, color: g.pct >= 90 ? 'bg-[#00ff88]' : 'bg-[#ffb800]' }));
+  const recordPrepPct = scheduleByGroup[2].pct;
+
+  // Item age buckets, computed from the risk and issue log against the seed reference date
+  const AGE_REFERENCE_DATE = Date.parse('2026-10-26T00:00:00Z');
+  const openItems = state.risks.filter(r => r.status === 'Open');
+  const ageDays = (d: string) => Math.floor((AGE_REFERENCE_DATE - Date.parse(`${d}T00:00:00Z`)) / 86400000);
+  const ageUnder30 = openItems.filter(r => ageDays(r.opened) < 30).length;
+  const age30to60 = openItems.filter(r => ageDays(r.opened) >= 30 && ageDays(r.opened) <= 60).length;
+  const ageOver60 = openItems.filter(r => ageDays(r.opened) > 60).length;
+  const itemsNeedingAction = age30to60 + ageOver60;
+  const agePct = (n: number) => (openItems.length === 0 ? 0 : Math.round((100 * n) / openItems.length));
 
   // Filtered KPIs
   const filteredKpis = useMemo(() => {
@@ -57,14 +77,14 @@ export const ViewCommandCenter: React.FC = () => {
 
       const matchesPhaseSelect =
         selectedPhase === null ||
-        (selectedPhase === 1 && k.phase.includes('Preparation')) ||
-        (selectedPhase === 2 && k.phase.includes('Preparation')) ||
-        (selectedPhase === 3 && k.phase.includes('Ingestion')) ||
-        (selectedPhase === 4 && k.phase.includes('Document')) ||
-        (selectedPhase === 5 && k.phase.includes('Execution')) ||
-        (selectedPhase === 6 && k.phase.includes('Results')) ||
-        (selectedPhase === 7 && k.phase.includes('Post-Board')) ||
-        (selectedPhase === 8 && k.phase.includes('Closeout'));
+        (selectedPhase === 1 && k.phase.includes('Planning')) ||
+        (selectedPhase === 2 && k.phase.includes('Planning')) ||
+        (selectedPhase === 3 && k.phase.includes('Roster Intake')) ||
+        (selectedPhase === 4 && k.phase.includes('Record Prep')) ||
+        (selectedPhase === 5 && k.phase.includes('Record Scoring')) ||
+        (selectedPhase === 6 && k.phase.includes('Order of Merit')) ||
+        (selectedPhase === 7 && k.phase.includes('Matching')) ||
+        (selectedPhase === 8 && k.phase.includes('Results Release'));
 
       const matchesDropdown =
         phaseFilter === 'All' || k.phase.toLowerCase().includes(phaseFilter.toLowerCase());
@@ -105,13 +125,13 @@ export const ViewCommandCenter: React.FC = () => {
       {/* Header */}
       <div>
         <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-          <span>ETM Boards Workflow and KPI Dashboard</span>
+          <span>ORBIT Command Center</span>
           <span className="font-mono text-xs text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-800">
             EXECUTIVE COMMAND
           </span>
         </h1>
         <p className="text-xs sm:text-sm text-slate-400 mt-1">
-          Active model for workflow visibility, performance measurement, risk management, and leadership decision support.
+          Cycle status, stage-gate flow, readiness, and open items across every board cycle.
         </p>
       </div>
 
@@ -119,9 +139,9 @@ export const ViewCommandCenter: React.FC = () => {
       <div className="p-3 bg-[#0a1020] border-l-4 border-l-cyan-400 border border-[#1e2d45] rounded-r-md text-xs text-slate-300 flex items-start justify-between gap-3 shadow-md">
         <div>
           <span className="font-semibold text-cyan-400 uppercase tracking-wider text-[11px] mr-2">
-            Editable demonstration model:
+            Demo data:
           </span>
-          Click any KPI-table cell to update text (BMO Lead role). Dashboard visuals use illustrative reference values and should be replaced with validated reporting data before operational use.
+          All records are fictional. BMO Lead can edit KPI text. Numbers are computed from seed data and are not real performance.
         </div>
         <span className="font-mono text-[10px] text-slate-400 shrink-0 bg-[#05080f] px-2 py-0.5 rounded border border-[#1e2d45]">
           USSF S1/ETM
@@ -133,64 +153,64 @@ export const ViewCommandCenter: React.FC = () => {
         {/* Active Boards */}
         <div
           onClick={() => dispatch({ type: 'SET_VIEW', viewId: 'VIEW-BoardDetail' })}
-          className="bg-[#0a1020] border border-[#1e2d45] border-t-4 border-t-[#2B6CB0] rounded-md p-4 hover:border-cyan-500/50 cursor-pointer transition-all hover:bg-[#0f172a]"
+          className="bg-[#0a1020] border border-[#1e2d45] border-t-4 border-t-[#2E86AB] rounded-md p-4 hover:border-cyan-500/50 cursor-pointer transition-all hover:bg-[#0f172a]"
           title="Drill down to individual board statistics, stage-gates, and role permissions"
         >
           <div className="flex items-center justify-between text-xs text-slate-400 font-medium uppercase tracking-wider">
             <span>Active Boards</span>
-            <span className="text-[10px] font-mono text-cyan-400">BRD-001..012</span>
+            <span className="text-[10px] font-mono text-cyan-400">{`BRD-001..${String(state.boards.length).padStart(3, '0')}`}</span>
           </div>
-          <div className="text-3xl font-bold font-mono text-white mt-1">12</div>
+          <div className="text-3xl font-bold font-mono text-white mt-1">{state.boards.length}</div>
           <div className="text-[11px] text-cyan-400 mt-1 flex items-center gap-1 font-medium">
             <span>Drill to Board Statistics</span>
             <ArrowRight className="w-3 h-3 text-cyan-400" />
           </div>
         </div>
 
-        {/* Milestones On Track */}
+        {/* Schedule On Track */}
         <div
           onClick={() => dispatch({ type: 'SET_VIEW', viewId: 'VIEW-OpsRegisters' })}
           className="bg-[#0a1020] border border-[#1e2d45] border-t-4 border-t-[#00ff88] rounded-md p-4 hover:border-emerald-500/50 cursor-pointer transition-all hover:bg-[#0f172a]"
         >
           <div className="flex items-center justify-between text-xs text-slate-400 font-medium uppercase tracking-wider">
-            <span>Milestones On Track</span>
+            <span>Schedule On Track</span>
             <span className="text-[10px] font-mono text-emerald-400">~200 TASKS</span>
           </div>
-          <div className="text-3xl font-bold font-mono text-[#00ff88] mt-1">94%</div>
+          <div className="text-3xl font-bold font-mono text-[#00ff88] mt-1">{scheduleOnTrackPct}%</div>
           <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
-            <span>Across all 12 board cycles</span>
+            <span>{`Across all ${state.boards.length} board cycles`}</span>
             <ArrowRight className="w-3 h-3 text-emerald-400" />
           </div>
         </div>
 
-        {/* Packet Readiness */}
+        {/* Packet Completeness */}
         <div
           onClick={() => handleDrillToCandidates('Exceptions')}
           className="bg-[#0a1020] border border-[#1e2d45] border-t-4 border-t-[#a855f7] rounded-md p-4 hover:border-purple-500/50 cursor-pointer transition-all hover:bg-[#0f172a]"
         >
           <div className="flex items-center justify-between text-xs text-slate-400 font-medium uppercase tracking-wider">
-            <span>Packet Readiness</span>
+            <span>Packet Completeness</span>
             <MetricPopover metricId="M-504" />
           </div>
-          <div className="text-3xl font-bold font-mono text-[#c084fc] mt-1">96%</div>
+          <div className="text-3xl font-bold font-mono text-[#c084fc] mt-1">97%</div>
           <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
             <span>Click to review 4 exceptions</span>
             <ArrowRight className="w-3 h-3 text-purple-400" />
           </div>
         </div>
 
-        {/* Open Issues Requiring Attention */}
+        {/* Items Needing Action */}
         <div
           onClick={() => dispatch({ type: 'SET_VIEW', viewId: 'VIEW-OpsRegisters' })}
           className="bg-[#0a1020] border border-[#1e2d45] border-t-4 border-t-[#ffb800] rounded-md p-4 hover:border-amber-500/50 cursor-pointer transition-all hover:bg-[#0f172a]"
         >
           <div className="flex items-center justify-between text-xs text-slate-400 font-medium uppercase tracking-wider">
-            <span>Issues Requiring Attention</span>
+            <span>Items Needing Action</span>
             <span className="text-[10px] font-mono text-amber-400">&gt;30 DAYS</span>
           </div>
-          <div className="text-3xl font-bold font-mono text-[#ffb800] mt-1">3</div>
+          <div className="text-3xl font-bold font-mono text-[#ffb800] mt-1">{itemsNeedingAction}</div>
           <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
-            <span>2 aged 30-60d · 1 aged &gt;60d</span>
+            <span>{`${age30to60} aged 30-60d · ${ageOver60} aged over 60d`}</span>
             <ArrowRight className="w-3 h-3 text-amber-400" />
           </div>
         </div>
@@ -253,8 +273,8 @@ export const ViewCommandCenter: React.FC = () => {
                   isSelected
                     ? 'ring-2 ring-cyan-400 border-cyan-400 bg-[#0f172a]'
                     : isBlue
-                    ? 'bg-[#2B6CB0]/15 border-[#2B6CB0]/50 hover:border-cyan-400'
-                    : 'bg-[#5B4282]/15 border-[#5B4282]/50 hover:border-purple-400'
+                    ? 'bg-[#2E86AB]/15 border-[#2E86AB]/50 hover:border-cyan-400'
+                    : 'bg-[#6B4FA0]/15 border-[#6B4FA0]/50 hover:border-purple-400'
                 }`}
               >
                 <div>
@@ -292,17 +312,17 @@ export const ViewCommandCenter: React.FC = () => {
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="font-mono text-xs font-semibold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5" /> Milestones, Dates & Completion Status
+                <Calendar className="w-3.5 h-3.5" /> Schedule & Milestones
               </span>
               <button
                 onClick={() => dispatch({ type: 'SET_VIEW', viewId: 'VIEW-OpsRegisters' })}
                 className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-medium"
               >
-                Open Register <ArrowRight className="w-3 h-3" />
+                Open Log <ArrowRight className="w-3 h-3" />
               </button>
             </div>
             <p className="text-xs text-slate-300 leading-relaxed mb-3">
-              Track milestones, suspense dates, dependencies, and completion; compare planned vs actual timelines; identify delays and accountable owners across all 12 board cycles.
+              Next milestones by cycle with planned and actual dates, owner, and status.
             </p>
 
             <div className="space-y-2">
@@ -329,17 +349,17 @@ export const ViewCommandCenter: React.FC = () => {
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="font-mono text-xs font-semibold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                <AlertTriangle className="w-3.5 h-3.5" /> Risks, Issues & Change Requests
+                <AlertTriangle className="w-3.5 h-3.5" /> Risk & Issue Log
               </span>
               <button
                 onClick={() => dispatch({ type: 'SET_VIEW', viewId: 'VIEW-OpsRegisters' })}
                 className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-medium"
               >
-                Open Register <ArrowRight className="w-3 h-3" />
+                Open Log <ArrowRight className="w-3 h-3" />
               </button>
             </div>
             <p className="text-xs text-slate-300 leading-relaxed mb-3">
-              Log operational risks and changes; track mitigation, resolution suspense dates, and escalation; use aging buckets to focus leadership on overdue items.
+              Open risks and issues with suspense date, owner, and escalation flag.
             </p>
 
             <div className="space-y-2">
@@ -365,19 +385,19 @@ export const ViewCommandCenter: React.FC = () => {
       <div className="bg-[#0a1020] border border-[#1e2d45] rounded-md p-4 space-y-3">
         <div className="flex items-center justify-between text-xs">
           <span className="font-mono font-semibold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
-            <Layers className="w-3.5 h-3.5" /> Six Standardized Operational Registers (Clickable)
+            <Layers className="w-3.5 h-3.5" /> ORBIT Data Logs (Clickable)
           </span>
           <span className="text-slate-400 text-[11px]">Direct integration to VIEW-OpsRegisters</span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
           {[
-            { name: 'Board Register', sub: 'BRD-001..012' },
-            { name: 'Milestone Register', sub: 'Planned vs Actual' },
-            { name: 'Readiness Register', sub: '4 Documents Gate' },
-            { name: 'Action Register', sub: 'Overdue Nudges' },
-            { name: 'Risk / Issue Register', sub: 'Aging & Escalation' },
-            { name: 'Results Register', sub: 'OOM & Handoff' }
+            { name: 'Cycle Log', sub: 'All BRD cycles' },
+            { name: 'Milestone Log', sub: 'Planned vs Actual' },
+            { name: 'Packet Check', sub: 'SOI, ROP, ARMS, SURF' },
+            { name: 'Action Items', sub: 'Overdue Nudges' },
+            { name: 'Risk & Issue Log', sub: 'Age & Escalation' },
+            { name: 'Results & Placement', sub: 'OoM & PSDM' }
           ].map(reg => (
             <button
               key={reg.name}
@@ -393,24 +413,24 @@ export const ViewCommandCenter: React.FC = () => {
 
         <div className="pt-2 border-t border-[#1e2d45]/70 flex flex-wrap items-center justify-between gap-2 text-[11px]">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-slate-400 font-semibold uppercase">Data Layer:</span>
-            <span className="text-slate-300">Standardized Schema · Consistent Workflow Tables · Automated Validation</span>
+            <span className="font-mono text-slate-400 font-semibold uppercase">Data Flow:</span>
+            <span className="text-slate-300">PIPE ingest · PDO objects · DELTA ledger</span>
           </div>
           <div className="flex items-center gap-1 text-[10px] font-mono text-cyan-300">
-            <span className="bg-cyan-950 px-1.5 py-0.5 rounded border border-cyan-800">Status</span>
-            <span className="bg-cyan-950 px-1.5 py-0.5 rounded border border-cyan-800">Performance</span>
+            <span className="bg-cyan-950 px-1.5 py-0.5 rounded border border-cyan-800">Stage Gate</span>
+            <span className="bg-cyan-950 px-1.5 py-0.5 rounded border border-cyan-800">Freshness</span>
             <span className="bg-cyan-950 px-1.5 py-0.5 rounded border border-cyan-800">Readiness</span>
-            <span className="bg-cyan-950 px-1.5 py-0.5 rounded border border-cyan-800">Issue Aging</span>
+            <span className="bg-cyan-950 px-1.5 py-0.5 rounded border border-cyan-800">Item Age</span>
           </div>
         </div>
       </div>
 
       {/* Four Visuals Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Visual 1: Board Status Donut */}
+        {/* Visual 1: Cycle Status Donut */}
         <div className="bg-[#0a1020] border border-[#1e2d45] rounded-md p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs font-mono font-semibold text-cyan-400 uppercase tracking-wider mb-2">
-            <span>Board Status (12 Boards)</span>
+            <span>{`Cycle Status (${state.boards.length} Cycles)`}</span>
             <MetricPopover metricId="M-501" />
           </div>
           <div className="h-40 relative flex items-center justify-center">
@@ -435,31 +455,26 @@ export const ViewCommandCenter: React.FC = () => {
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
-              <span className="text-xl font-bold font-mono text-white">12</span>
-              <span className="text-[10px] text-slate-400 uppercase font-mono">Boards</span>
+              <span className="text-xl font-bold font-mono text-white">{state.boards.length}</span>
+              <span className="text-[10px] text-slate-400 uppercase font-mono">Cycles</span>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-1 text-[11px] font-mono mt-2">
-            <span className="text-[#00ff88]">● 6 On Track</span>
-            <span className="text-[#ffb800]">● 2 At Risk</span>
-            <span className="text-[#ff4757]">● 1 Delayed</span>
-            <span className="text-[#2B6CB0]">● 3 Complete</span>
+            <span className="text-[#00ff88]">● {statusCount('On Track')} On Track</span>
+            <span className="text-[#ffb800]">● {statusCount('At Risk')} At Risk</span>
+            <span className="text-[#ff4757]">● {statusCount('Delayed')} Delayed</span>
+            <span className="text-[#2E86AB]">● {statusCount('Complete')} Complete</span>
           </div>
         </div>
 
-        {/* Visual 2: Milestone Timeliness Bar Gauges */}
+        {/* Visual 2: Schedule Adherence Bar Gauges */}
         <div className="bg-[#0a1020] border border-[#1e2d45] rounded-md p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs font-mono font-semibold text-emerald-400 uppercase tracking-wider mb-2">
-            <span>Milestone Timeliness</span>
-            <span className="text-[10px] text-slate-400 font-mono">AVG 94%</span>
+            <span>Schedule Adherence</span>
+            <span className="text-[10px] text-slate-400 font-mono">{`ALL ${scheduleOnTrackPct}%`}</span>
           </div>
           <div className="space-y-3 my-auto">
-            {[
-              { label: 'Preparation', pct: 94, color: 'bg-[#00ff88]' },
-              { label: 'Eligibility', pct: 92, color: 'bg-[#00ff88]' },
-              { label: 'Documents', pct: 88, color: 'bg-[#ffb800]' },
-              { label: 'Execution', pct: 97, color: 'bg-[#00ff88]' }
-            ].map(item => (
+            {scheduleByGroup.map(item => (
               <div key={item.label}>
                 <div className="flex justify-between text-[11px] font-medium text-slate-300 mb-1">
                   <span>{item.label}</span>
@@ -471,21 +486,21 @@ export const ViewCommandCenter: React.FC = () => {
               </div>
             ))}
           </div>
-          <p className="text-[10px] text-slate-400 mt-2">Documents timeliness (88%) reflects delayed ARMS feeds.</p>
+          <p className="text-[10px] text-slate-400 mt-2">{`Record Prep at ${recordPrepPct}% reflects delayed ARMS feeds.`}</p>
         </div>
 
-        {/* Visual 3: Packet Readiness Segmented Bars */}
+        {/* Visual 3: Packet Check Bars */}
         <div className="bg-[#0a1020] border border-[#1e2d45] rounded-md p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs font-mono font-semibold text-purple-400 uppercase tracking-wider mb-2">
-            <span>Packet Readiness</span>
+            <span>Packet Check</span>
             <MetricPopover metricId="M-504" />
           </div>
           <div className="space-y-3 my-auto">
             {[
-              { label: 'Eligibility Verified', pct: 98, color: 'bg-[#00ff88]' },
-              { label: 'Documents Assembled', pct: 93, color: 'bg-[#00ff88]' },
-              { label: 'Completeness Gate', pct: 96, color: 'bg-[#a855f7]' },
-              { label: 'Exceptions Rate', pct: 12, color: 'bg-[#ffb800]' }
+              { label: 'Eligibility Confirmed', pct: 99, color: 'bg-[#00ff88]' },
+              { label: 'Records Pulled', pct: 94, color: 'bg-[#00ff88]' },
+              { label: 'Lock Gate (M-504)', pct: 97, color: 'bg-[#a855f7]' },
+              { label: 'Open Exceptions', pct: 9, color: 'bg-[#ffb800]' }
             ].map(item => (
               <div key={item.label}>
                 <div className="flex justify-between text-[11px] font-medium text-slate-300 mb-1">
@@ -498,61 +513,61 @@ export const ViewCommandCenter: React.FC = () => {
               </div>
             ))}
           </div>
-          <p className="text-[10px] text-slate-400 mt-2">Lock gate satisfied (Completeness 96% &gt;= 95% target).</p>
+          <p className="text-[10px] text-slate-400 mt-2">Lock gate met: 97% against the 95% rule.</p>
         </div>
 
-        {/* Visual 4: Open Issue Aging Segmented Bar */}
+        {/* Visual 4: Item Age Bar */}
         <div className="bg-[#0a1020] border border-[#1e2d45] rounded-md p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs font-mono font-semibold text-amber-400 uppercase tracking-wider mb-2">
-            <span>Open Issue Aging (6 Total)</span>
-            <span className="text-[10px] text-amber-400 font-mono">3 OVERDUE</span>
+            <span>{`Item Age (${openItems.length} Open)`}</span>
+            <span className="text-[10px] text-amber-400 font-mono">{`${itemsNeedingAction} NEED ACTION`}</span>
           </div>
 
           <div className="my-auto space-y-3">
             <div className="flex h-5 w-full rounded overflow-hidden border border-[#1e2d45]">
-              <div style={{ width: '50%' }} className="bg-emerald-600 flex items-center justify-center text-[10px] font-mono text-white" title="3 items < 30 days">
-                3
+              <div style={{ width: `${agePct(ageUnder30)}%` }} className="bg-emerald-600 flex items-center justify-center text-[10px] font-mono text-white" title="Items under 30 days">
+                {ageUnder30}
               </div>
-              <div style={{ width: '33%' }} className="bg-amber-500 flex items-center justify-center text-[10px] font-mono text-black font-bold" title="2 items 30-60 days">
-                2
+              <div style={{ width: `${agePct(age30to60)}%` }} className="bg-amber-500 flex items-center justify-center text-[10px] font-mono text-black font-bold" title="Items 30 to 60 days">
+                {age30to60}
               </div>
-              <div style={{ width: '17%' }} className="bg-red-500 flex items-center justify-center text-[10px] font-mono text-white font-bold" title="1 item > 60 days">
-                1
+              <div style={{ width: `${agePct(ageOver60)}%` }} className="bg-red-500 flex items-center justify-center text-[10px] font-mono text-white font-bold" title="Items over 60 days">
+                {ageOver60}
               </div>
             </div>
 
             <div className="space-y-1 text-[11px] font-mono text-slate-300">
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded bg-emerald-500"></span> &lt; 30 days:</span>
-                <span className="font-bold">3 items</span>
+                <span className="font-bold">{ageUnder30} items</span>
               </div>
               <div className="flex items-center justify-between text-amber-300">
                 <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded bg-amber-500"></span> 30 to 60 days:</span>
-                <span className="font-bold">2 items</span>
+                <span className="font-bold">{age30to60} items</span>
               </div>
               <div className="flex items-center justify-between text-red-400">
                 <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded bg-red-500"></span> &gt; 60 days:</span>
-                <span className="font-bold">1 item</span>
+                <span className="font-bold">{ageOver60} items</span>
               </div>
             </div>
           </div>
 
-          <p className="text-[10px] text-slate-400 mt-2">Rule: Items &gt;= 30 days require executive attention.</p>
+          <p className="text-[10px] text-slate-400 mt-2">Rule: items open 30 days or more need action.</p>
         </div>
       </div>
 
-      {/* KPI Catalog and Accountability Model */}
+      {/* KPI Catalog */}
       <div className="bg-[#0a1020] border border-[#1e2d45] rounded-md p-4 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#1e2d45] pb-3">
           <div>
             <h3 className="font-semibold text-white text-sm flex items-center gap-2">
-              <span>KPI Catalog and Accountability Model</span>
+              <span>KPI Catalog and Owners</span>
               <span className="text-[11px] font-mono text-slate-400 font-normal">
                 (K-01 through K-11)
               </span>
             </h3>
             <p className="text-xs text-slate-400">
-              Accountability definitions, computed live values, and drill-down links. BMO Lead can click cells to edit text.
+              Definitions, owners, values, and drill-down links. BMO Lead can click cells to edit text.
             </p>
           </div>
 
@@ -561,7 +576,7 @@ export const ViewCommandCenter: React.FC = () => {
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
               <input
                 type="text"
-                placeholder="Search KPI, owner, source, timeframe, or phase..."
+                placeholder="Search by KPI, phase, owner, or source"
                 value={kpiSearch}
                 onChange={e => setKpiSearch(e.target.value)}
                 className="pl-8 pr-3 py-1 bg-[#05080f] border border-[#1e2d45] rounded text-xs text-white focus:outline-hidden focus:border-cyan-400 w-64"
@@ -573,15 +588,15 @@ export const ViewCommandCenter: React.FC = () => {
               onChange={e => setPhaseFilter(e.target.value)}
               className="px-2.5 py-1 bg-[#05080f] border border-[#1e2d45] rounded text-xs text-slate-300 focus:outline-hidden focus:border-cyan-400"
             >
-              <option value="All">All workflow phases</option>
-              <option value="Preparation">Preparation</option>
-              <option value="Ingestion">Ingestion & Eligibility</option>
-              <option value="Document">Document Assembly</option>
-              <option value="Execution">Execution</option>
-              <option value="Results">Results Finalization</option>
-              <option value="Post-Board">Post-Board</option>
-              <option value="Cross-Cutting">Cross-Cutting</option>
-              <option value="Closeout">Closeout / Improvement</option>
+              <option value="All">All phases</option>
+              <option value="Planning">Solicitation & Planning</option>
+              <option value="Roster Intake">Roster Intake</option>
+              <option value="Record Prep">Record Prep & Freeze</option>
+              <option value="Record Scoring">Record Scoring</option>
+              <option value="Order of Merit">Order of Merit</option>
+              <option value="Matching">Matching & Placement</option>
+              <option value="All Phases">All Phases</option>
+              <option value="Results Release">Results Release & AAR</option>
             </select>
 
             <button

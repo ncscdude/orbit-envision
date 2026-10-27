@@ -10,19 +10,19 @@
     --amber: #ffb800;
     --red: #ff4757;
     --purple: #a855f7;
-    --phase-blue: #2B6CB0;
-    --phase-purple: #5B4282;
+    --phase-blue: #2E86AB;
+    --phase-purple: #6B4FA0;
   }
 
   body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;
     background-color: #05080f;
     color: #e2e8f0;
     min-height: 100vh;
   }
 
   code, pre, .font-mono {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: Consolas, 'Cascadia Mono', 'Courier New', monospace;
   }
 }
 

@@ -111,10 +111,10 @@ export const EXPERIENCES: ExperienceDef[] = [
     title: 'Operations Registers',
     group: 'Leadership',
     roles: ['Board Recorder', 'BMO Lead', 'HQ Strategic Viewer'],
-    question: 'What are the planned vs actual milestone timelines, open risks, and phase 8 improvement actions?',
+    question: 'What are the planned vs actual milestone timelines, open risks, and phase 8 AAR items?',
     metricIds: ['K-01', 'K-10', 'K-11'],
     status: 'Live',
-    demoStep: 'Edit milestone suspense dates, review risk aging buckets, and log phase 8 lessons learned.'
+    demoStep: 'Edit milestone suspense dates, review risk aging buckets, and log phase 8 AAR items.'
   },
   {
     id: 'EXP-010',
@@ -190,7 +190,7 @@ export const EXPERIENCES: ExperienceDef[] = [
     id: 'EXP-015',
     ideaId: 'IDEA-010',
     viewId: 'VIEW-CascadeTracker',
-    title: 'Activation & Declination Cascade Tracker',
+    title: 'Decline & Deferral Cascade Tracker',
     group: 'Assignments',
     roles: ['Assignments Officer'],
     question: 'When a candidate declines or defers, what happens downstream and how long are cases open?',
@@ -212,7 +212,7 @@ export const EXPERIENCES: ExperienceDef[] = [
     id: 'EXP-017',
     ideaId: 'IDEA-012',
     viewId: 'VIEW-LessonsLibrary',
-    title: 'Lessons Learned Library',
+    title: 'AAR Library',
     group: 'Leadership',
     roles: ['BMO Lead', 'Board Recorder'],
     question: 'What did earlier cycles learn that applies to the cycle we are about to run?',
@@ -250,8 +250,8 @@ export const ASSUMPTIONS_AND_QUESTIONS = [
   },
   {
     id: 4,
-    topic: 'Open Issues Requiring Attention Definition',
-    text: 'Open Issues Requiring Attention is computed as open items aged 30 days or more beyond suspense (seed contains 2 between 30-60d and 1 over 60d = 3 total requiring attention).'
+    topic: 'Items Needing Action Definition',
+    text: 'Items Needing Action counts open risk and issue items aged 30 days or more, computed on screen from the log against the 2026-10-26 seed reference date.'
   },
   {
     id: 5,

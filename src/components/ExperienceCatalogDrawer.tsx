@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Layers, Compass, HelpCircle, CheckCircle2, Clock } from 'lucide-react';
+import { X, Layers, HelpCircle, CheckCircle2, Clock } from 'lucide-react';
 import { EXPERIENCES, ASSUMPTIONS_AND_QUESTIONS } from '../registry/experiences';
 
 interface ExperienceCatalogDrawerProps {

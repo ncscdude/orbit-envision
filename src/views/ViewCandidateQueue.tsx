@@ -1,19 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useOrbit } from '../state/context';
 import { Candidate } from '../types';
-import { MetricPopover } from '../components/MetricPopover';
 import {
   Search,
   Shuffle,
-  Filter,
   CheckCircle2,
-  Clock,
   Flag,
   ChevronRight,
-  TrendingUp,
   AlertTriangle,
-  Award,
-  Sparkles,
   BarChart3
 } from 'lucide-react';
 
@@ -85,7 +79,7 @@ export const ViewCandidateQueue: React.FC = () => {
       list = list.filter(c => c.pmeStatus === state.candidateFilterPme);
     }
 
-    // Packet readiness filter
+    // Packet check filter
     if (state.candidateFilterPacket === 'Complete') {
       list = list.filter(c => c.packetReadiness.complete);
     } else if (state.candidateFilterPacket === 'Exceptions') {
@@ -216,7 +210,7 @@ export const ViewCandidateQueue: React.FC = () => {
           {/* Status Filter */}
           <select
             value={state.candidateFilterStatus}
-            onChange={e => dispatch({ type: 'SET_FILTER_STATUS', status: e.target.value as any })}
+            onChange={e => dispatch({ type: 'SET_FILTER_STATUS', status: e.target.value as 'All' | 'Pending' | 'Scored' | 'Flagged' })}
             className="px-2.5 py-1.5 bg-[#05080f] border border-[#1e2d45] rounded text-slate-300 focus:outline-hidden focus:border-cyan-400"
           >
             <option value="All">Status: All</option>
@@ -237,10 +231,10 @@ export const ViewCandidateQueue: React.FC = () => {
             <option value="90">LLM Fit &gt; 90</option>
           </select>
 
-          {/* Packet Readiness */}
+          {/* Packet Check */}
           <select
             value={state.candidateFilterPacket}
-            onChange={e => dispatch({ type: 'SET_FILTER_PACKET', packet: e.target.value as any })}
+            onChange={e => dispatch({ type: 'SET_FILTER_PACKET', packet: e.target.value as 'All' | 'Complete' | 'Exceptions' })}
             className="px-2.5 py-1.5 bg-[#05080f] border border-[#1e2d45] rounded text-slate-300 focus:outline-hidden focus:border-cyan-400"
           >
             <option value="All">Packets: All</option>

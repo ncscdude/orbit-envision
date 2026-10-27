@@ -2,23 +2,16 @@ import React, { useState, useMemo } from 'react';
 import { useOrbit } from '../state/context';
 import { computeBoardStatistics, getBoardRolePermissions, getAllBoardRolePermissions, canExecuteBoardAction } from '../lib/boardStats';
 import {
-  ShieldCheck,
   ShieldAlert,
   Lock,
   Award,
   CheckCircle2,
   AlertTriangle,
-  Clock,
-  Layers,
   ArrowRight,
   UserCheck,
-  TrendingUp,
-  Cpu,
   FileCheck,
   AlertCircle,
-  ExternalLink,
-  ChevronDown,
-  Info
+  ExternalLink
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from 'recharts';
 
@@ -299,7 +292,7 @@ export const ViewBoardDetail: React.FC = () => {
           </div>
         </div>
 
-        {/* Card 3: Packet Readiness & Gate */}
+        {/* Card 3: Packet Check & Gate */}
         <div className="bg-[#0a1020] border border-[#1e2d45] border-t-4 border-t-purple-500 rounded-md p-4 space-y-1">
           <div className="flex items-center justify-between text-xs text-slate-400 font-medium uppercase font-mono">
             <span>Packet Completeness</span>
@@ -322,7 +315,7 @@ export const ViewBoardDetail: React.FC = () => {
         </div>
 
         {/* Card 4: Milestones & Critical Slippage */}
-        <div className="bg-[#0a1020] border border-[#1e2d45] border-t-4 border-t-[#2B6CB0] rounded-md p-4 space-y-1">
+        <div className="bg-[#0a1020] border border-[#1e2d45] border-t-4 border-t-[#2E86AB] rounded-md p-4 space-y-1">
           <div className="flex items-center justify-between text-xs text-slate-400 font-medium uppercase font-mono">
             <span>Phase & Milestones</span>
             <span className="text-blue-400">Phase {boardStats.milestones.currentPhase} / 8</span>
@@ -380,7 +373,7 @@ export const ViewBoardDetail: React.FC = () => {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
               {[
-                { stage: 'Ingested', count: boardStats.stageCounts.ingested, pct: boardStats.stagePercentages.ingested, color: 'text-purple-400', desc: 'Raw records queued from AFPC/eBOSS' },
+                { stage: 'Ingested', count: boardStats.stageCounts.ingested, pct: boardStats.stagePercentages.ingested, color: 'text-purple-400', desc: 'Raw records queued from eBOSS' },
                 { stage: 'Validated', count: boardStats.stageCounts.validated, pct: boardStats.stagePercentages.validated, color: 'text-amber-400', desc: 'Schema checked; exceptions identified' },
                 { stage: 'Locked', count: boardStats.stageCounts.locked, pct: boardStats.stagePercentages.locked, color: 'text-emerald-400', desc: 'Population sealed; updates frozen' },
                 { stage: 'Scoring', count: boardStats.stageCounts.scoring, pct: boardStats.stagePercentages.scoring, color: 'text-cyan-400', desc: 'Active panel evaluation underway' },
@@ -491,11 +484,11 @@ export const ViewBoardDetail: React.FC = () => {
                     <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} />
                     <RechartsTooltip
                       contentStyle={{ backgroundColor: '#0a1020', borderColor: '#1e2d45', fontSize: '11px' }}
-                      formatter={(val: any) => [`${val} Scores`, 'Count']}
+                      formatter={(val?: number | string | readonly (number | string)[]) => [`${val} Scores`, 'Count']}
                     />
                     <Bar dataKey="count" fill="#00d4ff" radius={[4, 4, 0, 0]}>
                       {scoreDistributionData.map((_, index) => (
-                        <Cell key={`bar-${index}`} fill={index > 2 ? '#00d4ff' : '#2B6CB0'} />
+                        <Cell key={`bar-${index}`} fill={index > 2 ? '#00d4ff' : '#2E86AB'} />
                       ))}
                     </Bar>
                   </BarChart>
@@ -610,7 +603,7 @@ export const ViewBoardDetail: React.FC = () => {
                   <th className="py-2.5 px-3">Look Status</th>
                   <th className="py-2.5 px-3">Stage Gate</th>
                   <th className="py-2.5 px-3">Scores (Pool / My)</th>
-                  <th className="py-2.5 px-3">Packet Readiness</th>
+                  <th className="py-2.5 px-3">Packet Check</th>
                   <th className="py-2.5 px-3 text-right">Action</th>
                 </tr>
               </thead>
