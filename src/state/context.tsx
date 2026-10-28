@@ -5,7 +5,7 @@
 
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { AppState, MetricValue } from '../types';
-import { appReducer, createInitialState, Action } from './reducer';
+import { appReducer, createInitialState, Action, STORAGE_KEY } from './reducer';
 import { getMetric } from '../registry/metrics';
 import { identityProvider } from '../auth/identity';
 
@@ -17,8 +17,6 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | null>(null);
 
-const STORAGE_KEY = 'orbit_demo_state_v4';
-
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, undefined, () => {
     const loadSaved = (): AppState => {
@@ -27,7 +25,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (saved) {
           const parsed = JSON.parse(saved);
           // Ensure candidates and required structures are intact
-          if (parsed.candidates && parsed.ledger && parsed.kpis) {
+          if (parsed.candidates && parsed.ledger && parsed.kpis && parsed.chat) {
             return { userId: '', accessDenial: null, ...parsed };
           }
         }

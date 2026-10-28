@@ -32,9 +32,16 @@ const ViewDeltaLedgerContent: React.FC = () => {
 
   const isTampered = state.chainTampered || !verification.valid;
 
+  // A-7: a Panelist sees only their own entries, so other panel members' scores stay hidden
+  const ownOnly = state.currentRole === 'Panelist';
+  const visibleLedger = useMemo(
+    () => (ownOnly ? state.ledger.filter(e => e.actor === state.actorName) : state.ledger),
+    [ownOnly, state.ledger, state.actorName]
+  );
+
   // Filtered ledger entries
   const filteredLedger = useMemo(() => {
-    return state.ledger.filter(entry => {
+    return visibleLedger.filter(entry => {
       const matchesSearch =
         entry.id.toLowerCase().includes(ledgerSearch.toLowerCase()) ||
         entry.actor.toLowerCase().includes(ledgerSearch.toLowerCase()) ||
@@ -46,14 +53,14 @@ const ViewDeltaLedgerContent: React.FC = () => {
 
       return matchesSearch && matchesType;
     });
-  }, [state.ledger, ledgerSearch, typeFilter]);
+  }, [visibleLedger, ledgerSearch, typeFilter]);
 
   const totalPages = Math.ceil(filteredLedger.length / pageSize) || 1;
   const paginatedEntries = filteredLedger.slice((page - 1) * pageSize, page * pageSize);
 
   const exportLedgerCsv = () => {
     const headers = 'ID,Timestamp,Actor,Role,TargetID,Type,Summary,PrevHash,Hash';
-    const rows = state.ledger.map(e =>
+    const rows = visibleLedger.map(e =>
       `"${e.id}","${e.timestamp}","${e.actor}","${e.role}","${e.targetId}","${e.type}","${e.summary.replace(/"/g, '""')}","${e.prevHash}","${e.hash}"`
     );
     const blob = new Blob([[headers, ...rows].join('\n')], { type: 'text/csv' });
@@ -207,7 +214,9 @@ const ViewDeltaLedgerContent: React.FC = () => {
           <div>
             <h3 className="font-bold text-white text-sm">DELTA Append-Only Audit Trail</h3>
             <p className="text-xs text-slate-400">
-              Complete chronological register of evaluations, score revisions, overrides, and governance commits.
+              {ownOnly
+                ? 'Showing your own entries only. Other panel members\' entries are hidden while the board is in session.'
+                : 'Complete chronological register of evaluations, score revisions, overrides, and governance commits.'}
             </p>
           </div>
 

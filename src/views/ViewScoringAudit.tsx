@@ -10,6 +10,8 @@ import {
 
 const ViewScoringAuditContent: React.FC = () => {
   const { state, dispatch } = useOrbit();
+  // Board President owns this audit; the BMO Lead may also run the rollback playbook
+  const canRollback = state.currentRole === 'BMO Lead' || state.currentRole === 'Board President';
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [adjudicationAction, setAdjudicationAction] = useState<'Reconcile' | 'Uphold' | 'Escalate'>('Reconcile');
   const [newScoreVal, setNewScoreVal] = useState<number>(8.0);
@@ -62,7 +64,7 @@ const ViewScoringAuditContent: React.FC = () => {
   };
 
   const handleExecuteRollback = () => {
-    if (state.currentRole !== 'BMO Lead' || rollbackConfirmInput !== 'ROLLBACK') return;
+    if (!canRollback || rollbackConfirmInput !== 'ROLLBACK') return;
     dispatch({ type: 'ROLLBACK_PLAYBOOK' });
     setRollbackExecuted(true);
     setRollbackConfirmInput('');
@@ -223,13 +225,13 @@ const ViewScoringAuditContent: React.FC = () => {
               placeholder="Type ROLLBACK"
               value={rollbackConfirmInput}
               onChange={e => setRollbackConfirmInput(e.target.value)}
-              disabled={state.currentRole !== 'BMO Lead'}
+              disabled={!canRollback}
               className="p-1.5 bg-[#0a1020] border border-red-800 text-white font-mono text-xs rounded uppercase w-36 focus:outline-hidden focus:border-red-400 disabled:opacity-40"
             />
             <button
               type="button"
               onClick={handleExecuteRollback}
-              disabled={state.currentRole !== 'BMO Lead' || rollbackConfirmInput !== 'ROLLBACK'}
+              disabled={!canRollback || rollbackConfirmInput !== 'ROLLBACK'}
               className="px-3 py-1.5 bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white font-bold rounded text-xs transition-colors shadow-md"
             >
               Execute Rollback

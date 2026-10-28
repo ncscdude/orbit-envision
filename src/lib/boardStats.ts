@@ -280,7 +280,7 @@ export function getBoardRolePermissions(role: Role): BoardRolePermission {
         badgeColor: '#00d4ff',
         canLockPopulation: true,
         canCertifyOom: true,
-        canScoreCandidates: true,
+        canScoreCandidates: false,
         canEditMilestones: true,
         canManageRisks: true,
         canViewTalentLossData: true,
@@ -333,6 +333,36 @@ export function getBoardRolePermissions(role: Role): BoardRolePermission {
         ]
       };
 
+    case 'Board President':
+      return {
+        role,
+        accessLevel: 'PANEL_OVERSIGHT',
+        title: 'Board President (Voting Member & Panel Oversight)',
+        badgeColor: '#a78bfa',
+        canLockPopulation: false,
+        canCertifyOom: true,
+        canScoreCandidates: true,
+        canEditMilestones: false,
+        canManageRisks: false,
+        canViewTalentLossData: false,
+        canExportAuditPackage: true,
+        canRebalanceDocket: false,
+        firewallActive: true,
+        description: 'Presides over the panel and votes on every record. Sees all panel scores and divergence for their own board, calls re-votes, runs panel chat, and certifies the Order of Merit with the BMO Lead.',
+        restrictions: [
+          'Own board only',
+          'Own AI fit value hidden until the President scores the record (anti-anchoring)',
+          'No access to talent loss data (firewall rule 5)'
+        ],
+        allowedActions: [
+          'Score Board Candidates (6.0 to 10.0)',
+          'View every panelist score, progress, and divergence',
+          'Call a Re-vote on a Record',
+          'Pin Messages and Close Discussion Threads',
+          'Certify Final Order of Merit (with BMO Lead)'
+        ]
+      };
+
     case 'Panelist':
       return {
         role,
@@ -358,7 +388,9 @@ export function getBoardRolePermissions(role: Role): BoardRolePermission {
           'Score Assigned Board Candidates (6.0 to 10.0)',
           'Flag Candidate Record for Panel Discussion',
           'Review & Sign Off AI Scribe Synthesis Snapshot',
-          'Examine 8-Lens Evidence Dossiers'
+          'Examine 8-Lens Evidence Dossiers',
+          'Read Full SOI, Commander Comments, and Appraisals',
+          'Discuss in Panel Chat (logged)'
         ]
       };
 
@@ -456,6 +488,7 @@ export function getBoardRolePermissions(role: Role): BoardRolePermission {
 export function getAllBoardRolePermissions(): BoardRolePermission[] {
   const roles: Role[] = [
     'BMO Lead',
+    'Board President',
     'Board Recorder',
     'Panelist',
     'Assignments Officer',

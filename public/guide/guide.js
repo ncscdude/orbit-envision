@@ -11,25 +11,40 @@ const ROLES = [
       { t: 'Filter by phase', d: 'Click a phase in the 8-phase bar to filter milestones and the KPI catalog. Click it again, or Reset Filters, to clear.', img: 'bmo-1-command', cap: 'Command Center, phase bar' },
       { t: 'Check the pipeline in HELIOS Command', d: 'Stage-gate funnel, stuck and failed records, and source freshness for ARMS, MilPDS, MyVector, and SURF. Lock Population works only when Packet Completeness is 95% or higher.', img: 'bmo-2-helios', cap: 'HELIOS Command' },
       { t: 'Resolve score outliers in Scoring Audit', d: 'Heartburn cases are scores 1.5 points or more from the panel average. Choose Reconcile, Uphold, or Escalate, with a note.', img: 'bmo-3-audit', cap: 'Scoring Audit' },
-      { t: 'Use the rollback only when needed', d: 'The Parity Breach Rollback Playbook is yours alone. It walks four steps and asks you to type ROLLBACK to confirm.', img: 'bmo-3-audit', cap: 'Scoring Audit, rollback' }
+      { t: 'Use the rollback only when needed', d: 'The Parity Breach Rollback Playbook belongs to you and the Board President. It walks four steps and asks you to type ROLLBACK to confirm.', img: 'bmo-3-audit', cap: 'Scoring Audit, rollback' }
     ],
-    can: ['Lock the population at 95% packet completeness or higher','Certify the Order of Merit','Run the rollback playbook','Edit milestones and KPI text','Export the audit package'],
-    cannot: ['Open the Career Planner N-Box (talent data)','Override anything without a 20-character reason'] },
+    can: ['Lock the population at 95% packet completeness or higher','Certify the Order of Merit','Run the rollback playbook','Edit milestones and KPI text','Export the audit package','Watch the queue and Panel Workspace (view only)'],
+    cannot: ['Score records (only the panel and the Board President vote)','Read panel chat','Open the Career Planner N-Box (talent data)','Override anything without a 20-character reason'] },
+
+  { id: 'board-president', name: 'Board President', short: 'Presides and votes', color: '#a78bfa',
+    title: 'Voting panel member with panel oversight',
+    question: 'Is my panel scoring consistently, and where do we need to talk?',
+    lands: 'Candidate Queue',
+    tabs: ['Command Center','Candidate Queue','Panel Workspace','Scoring Audit','Cross Analytics','DELTA Ledger','Board Statistics & Roles'],
+    steps: [
+      { t: 'Check panel oversight', d: 'The purple panel above the queue shows each voter: records scored, average, and divergent scores (1.5 points or more from that record’s panel average).', img: 'pres-1-queue', cap: 'Candidate Queue, panel oversight' },
+      { t: 'Score like any panel member', d: 'You vote on every record. The AI fit value stays hidden until you score, same as the panel. Your score is kept under your own seat.', img: 'pres-2-workspace', cap: 'Panel Workspace' },
+      { t: 'Call a re-vote when scores split', d: 'Call re-vote needs a reason. It flags the record, posts to its thread, and logs to DELTA. Panel members then revise with a reason.', img: 'pres-3-revote', cap: 'Panel Workspace, re-vote' },
+      { t: 'Run the panel chat', d: 'Pin key messages and close a record’s thread when the discussion is done. Flagging the record reopens it.', img: 'panel-4-chat', cap: 'Panel Chat' },
+      { t: 'Resolve outliers in Scoring Audit', d: 'You own the audit: Reconcile, Uphold, or Escalate each heartburn case. Certify the Order of Merit with the BMO Lead.', img: 'bmo-3-audit', cap: 'Scoring Audit' }
+    ],
+    can: ['Score every record (6.0 to 10.0)','See every panelist’s scores and divergence for your board','Call a re-vote','Pin messages and close threads','Certify the Order of Merit with the BMO Lead','Read the full SOI, commander’s comments, and appraisals'],
+    cannot: ['See the AI fit value before you score','Open the Career Planner N-Box (talent data)','Lock the population','Edit milestones or registers'] },
 
   { id: 'panelist', name: 'Panelist', short: 'Scores records', color: '#e0a000',
     title: 'Board evaluator, behind the talent firewall',
     question: 'Which record do I score next, and what does the evidence show?',
     lands: 'Candidate Queue',
-    tabs: ['Command Center','Candidate Queue','Panel Workspace','Cross Analytics','DELTA Ledger','Board Statistics & Roles'],
+    tabs: ['Candidate Queue','Panel Workspace','DELTA Ledger'],
     steps: [
-      { t: 'Find your record in the queue', d: 'Pick the board, then filter or search with <kbd>Ctrl</kbd>+<kbd>J</kbd>. Random Shuffle reorders the queue and logs its seed. Click a row to open it.', img: 'panel-1-queue', cap: 'Candidate Queue' },
+      { t: 'Find your record in the queue', d: 'The queue holds only your board’s roster. “How this list was built” shows the roster rules and source. Search with <kbd>Ctrl</kbd>+<kbd>J</kbd>; LLM Fit reads “after you score” until you vote.', img: 'panel-1-queue', cap: 'Candidate Queue' },
       { t: 'Review the evidence in 8 lenses', d: 'Start with Overview: SOI, ROPs, ARMS freshness, and SURF. Switch lenses with <kbd>Alt</kbd>+<kbd>1</kbd> to <kbd>Alt</kbd>+<kbd>8</kbd>.', img: 'panel-2-workspace', cap: 'Panel Workspace' },
-      { t: 'Check the Scribe summary, then sign off', d: 'The LLM Scribe panel is advisory. Compare it with the record before you sign off. Your sign-off is logged.', img: 'panel-2-workspace', cap: 'Panel Workspace, Scribe' },
-      { t: 'Score at the bottom dock', d: 'Keys <kbd>1</kbd> to <kbd>5</kbd> set 6.0 to 10.0. Hold <kbd>Shift</kbd> to add 0.5. Arrows nudge by 0.5. Submit and Next saves and moves on.', img: 'panel-2-workspace', cap: 'Scoring dock' },
-      { t: 'Flag when the panel should discuss', d: 'Flag for Discussion needs a short reason. The model score and panel average appear only after you submit.', img: 'panel-2-workspace', cap: 'Scoring dock, flag' }
+      { t: 'Read the full record', d: 'Read full record opens the complete SOI, commander’s comments, and every appraisal with numbered paragraphs. Each Scribe line has a “Check against source” link. Opening is logged.', img: 'panel-3-reader', cap: 'Full record reader' },
+      { t: 'Discuss with the panel', d: 'Discuss opens the record’s thread; Panel channel reaches the whole board. Everything is logged to DELTA. Health information is blocked.', img: 'panel-4-chat', cap: 'Panel Chat' },
+      { t: 'Score at the bottom dock', d: 'Keys <kbd>1</kbd> to <kbd>5</kbd> set 6.0 to 10.0. Hold <kbd>Shift</kbd> to add 0.5. Submit and Next saves and moves on. The model score, panel average, and AI fit appear only after you submit. Flag for Discussion also posts to the thread.', img: 'panel-2-workspace', cap: 'Scoring dock' }
     ],
-    can: ['Score records from 6.0 to 10.0','Flag a record for discussion','Sign off a Scribe summary','Review all 8 evidence lenses'],
-    cannot: ['See other panelists’ unfinalized scores','See the draft Order of Merit','See any talent or loss data','Edit milestones or registers'] },
+    can: ['Score records from 6.0 to 10.0','Read the full SOI, commander’s comments, and appraisals','Discuss in the record thread and panel channel','Flag a record for discussion','See your own DELTA entries'],
+    cannot: ['See the AI fit value before you score','See other panelists’ scores (Cross Analytics, Board Statistics, and others’ ledger entries are closed to you)','See any talent or loss data','Edit milestones or registers'] },
 
   { id: 'board-recorder', name: 'Board Recorder', short: 'Keeps the record', color: '#14b87a',
     title: 'Board operations and audit lead',
@@ -42,14 +57,14 @@ const ROLES = [
       { t: 'Verify the ledger', d: 'DELTA Ledger shows the chain status. Filter by type, actor, or record, replay earlier states, and export a CSV.', img: 'rec-2-ledger', cap: 'DELTA Ledger' },
       { t: 'Watch the pipeline', d: 'HELIOS Command shows stuck and failed records and stale sources, so you can chase them before lock.', img: 'bmo-2-helios', cap: 'HELIOS Command' }
     ],
-    can: ['Edit milestone dates','Log and escalate risks, issues, and changes','Add AAR items','Verify and export the ledger'],
-    cannot: ['Lock the population','Certify the Order of Merit','Submit scores','Open the Career Planner N-Box'] },
+    can: ['Edit milestone dates','Log and escalate risks, issues, and changes','Add AAR items','Verify and export the ledger','Read panel chat for the record (read only)'],
+    cannot: ['Lock the population','Certify the Order of Merit','Submit scores or post in panel chat','Open the Career Planner N-Box'] },
 
   { id: 'assignments', name: 'Assignments Officer', short: 'Places people', color: '#9b5cf0',
     title: 'Post-board slating authority',
     question: 'Who goes to which billet, and how solid is each match?',
     lands: 'Match Lab',
-    tabs: ['Command Center','Candidate Queue','Match Lab','Career Planner N-Box','DELTA Ledger','Board Statistics & Roles'],
+    tabs: ['Command Center','Match Lab','Career Planner N-Box','DELTA Ledger','Board Statistics & Roles'],
     steps: [
       { t: 'Work in Sandbox first', d: 'Switch the toggle at top right to Sandbox Scenario. Nothing official changes until you Promote a scenario.', img: 'asg-2-sandbox', cap: 'Match Lab, Sandbox' },
       { t: 'Move the weights and read the rerank', d: 'Tab 4B. Adjust Order of Merit, SOI tags, skills, grade fit, preference, and billet priority. The panel below shows who moved and how many critical billets are filled.', img: 'asg-3-weights', cap: 'Match Lab, 4B Weight Sliders' },

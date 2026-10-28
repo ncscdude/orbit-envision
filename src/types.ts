@@ -4,6 +4,7 @@
  */
 
 export type Role =
+  | 'Board President'
   | 'Panelist'
   | 'Board Recorder'
   | 'BMO Lead'
@@ -263,7 +264,13 @@ export type DeltaType =
   | 'BOARD_EXCEPTIONS_CLEAR'
   | 'BOARD_ROLE_OVERRIDE'
   | 'ROLE_CHANGE'
-  | 'ACCESS_DENIED';
+  | 'ACCESS_DENIED'
+  | 'PANEL_MESSAGE'
+  | 'THREAD_CLOSE'
+  | 'MESSAGE_PIN'
+  | 'REVOTE_CALL'
+  | 'FIT_REVEAL'
+  | 'RECORD_OPEN';
 
 // Role recorded on a DELTA entry. 'Unmapped' is used only when access is denied
 // because the identity has no ORBIT role.
@@ -273,7 +280,7 @@ export type AccessDenialReason = 'UNKNOWN_IDENTITY' | 'UNMAPPED_ROLE';
 
 export interface BoardRolePermission {
   role: Role;
-  accessLevel: 'FULL_ADMIN' | 'OPERATIONS_AUDIT' | 'EVALUATOR_FIREWALLED' | 'SLATING_ASSIGNMENTS' | 'EXECUTIVE_READONLY' | 'TALENT_MANAGEMENT';
+  accessLevel: 'FULL_ADMIN' | 'PANEL_OVERSIGHT' | 'OPERATIONS_AUDIT' | 'EVALUATOR_FIREWALLED' | 'SLATING_ASSIGNMENTS' | 'EXECUTIVE_READONLY' | 'TALENT_MANAGEMENT';
   title: string;
   badgeColor: string;
   canLockPopulation: boolean;
@@ -466,6 +473,20 @@ export interface MetricValue {
   details?: string;
 }
 
+// Panel chat (A-2). channel is 'PANEL' for the board-wide channel, or a candidate ID
+// for that record's thread. Every post, pin, and close is written to DELTA.
+export interface ChatMessage {
+  id: string;
+  boardId: string;
+  channel: string;
+  authorId: string;
+  authorName: string;
+  role: Role | 'System';
+  text: string;
+  at: string;
+  pinned: boolean;
+}
+
 export interface AppState {
   currentRole: Role;
   actorName: string;
@@ -489,6 +510,10 @@ export interface AppState {
   improvementActions: ImprovementAction[];
   kpis: KpiCatalogItem[];
   canonicalFiles: CanonicalFileRecord[];
+
+  // Panel chat (A-2)
+  chat: ChatMessage[];
+  closedThreads: string[]; // candidate IDs whose discussion thread the Board President closed
 
   // Match Lab State
   activeProposalMode: 'Official' | 'Sandbox';

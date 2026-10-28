@@ -3,6 +3,7 @@ import { useOrbit } from '../state/context';
 import { computePanelistCalibration, computeZScoreNormalizedRankings, PanelistStats } from '../lib/stats';
 import { PANELIST_PROFILES } from '../data/seed';
 import { RequireRole } from '../auth/RequireRole';
+import { fitVisible } from '../lib/panel';
 import {
   RadarChart,
   PolarGrid,
@@ -82,12 +83,13 @@ const ViewCrossAnalyticsContent: React.FC = () => {
     },
     {
       attribute: 'Predictive Fit',
-      ...Object.fromEntries(comparedCandidates.map(c => [c.name.split(',')[0], c.llmFitScore]))
+      // The Board President votes, so their own unscored records show 0 here (A-5)
+      ...Object.fromEntries(comparedCandidates.map(c => [c.name.split(',')[0], fitVisible(c, state) ? c.llmFitScore : 0]))
     }
   ];
 
   // Scatter plot data (Panel Avg vs LLM Fit)
-  const scatterData = state.candidates.map(c => {
+  const scatterData = state.candidates.filter(c => fitVisible(c, state)).map(c => {
     const scores = c.scores.map(s => s.value);
     const avg = scores.length > 0 ? Number((scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)) : 8.0;
     const isHeartburn = Math.abs((c.myScore || avg) - avg) >= 1.5;
@@ -225,7 +227,9 @@ const ViewCrossAnalyticsContent: React.FC = () => {
                 <tr>
                   <td className="py-1.5 px-2 font-semibold">LLM Fit Score</td>
                   {comparedCandidates.map(c => (
-                    <td key={c.id} className="py-1.5 px-2 font-bold text-purple-300">{c.llmFitScore}%</td>
+                    <td key={c.id} className="py-1.5 px-2 font-bold text-purple-300">
+                      {fitVisible(c, state) ? `${c.llmFitScore}%` : 'after you score'}
+                    </td>
                   ))}
                 </tr>
                 <tr>

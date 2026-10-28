@@ -9,7 +9,7 @@ import { verifyChain } from './delta';
 import type { AppState } from '../types';
 
 const BMO = { userId: 'DEV-BMO-01', displayName: 'Col Vance (BMO Lead)', role: 'BMO Lead' as const };
-const PANELIST = { userId: 'DEV-PANEL-01', displayName: 'Col Marcus Vance (Chair)', role: 'Panelist' as const };
+const PANELIST = { userId: 'DEV-PANEL-01', displayName: 'Col Marcus Vance (Panelist)', role: 'Panelist' as const };
 
 function signedIn(): AppState {
   return appReducer(createInitialState(), { type: 'SET_IDENTITY', identity: BMO });

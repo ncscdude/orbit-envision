@@ -3,16 +3,45 @@
  * Persists to localStorage with try/catch; all meaningful actions log to DELTA
  */
 
-import { AppState, Role, DeltaEntry, MatchPair, MatchScenarioWeights, Milestone, Risk } from '../types';
+import { AppState, Role, DeltaEntry, MatchPair, MatchScenarioWeights, Milestone, Risk, ChatMessage } from '../types';
 import type { Identity } from '../auth/identity';
 import { ALL_CANDIDATES_SEED, BILLETS_SEED, BOARDS_SEED, generateMilestones, RISKS_SEED, SOURCE_PIPELINES_SEED, ENDORSERS_SEED, STAFF_SLOTS_SEED, COMMANDER_ACTIONS_SEED, IMPROVEMENT_ACTIONS_SEED, SAMPLE_CANONICAL_FILES } from '../data/seed';
 import { INITIAL_KPIS } from '../data/kpis';
 import { createDeltaEntry } from './delta';
 import { DEFAULT_WEIGHTS, generateAllCandidateBilletScores, computeSensitivityHolds, toScoreMatrix } from '../lib/match';
 import { runGreedyMatching } from '../lib/stable';
+import { canScore, canPostChat, scoreKeyFor, getMyScore, containsPossiblePhi } from '../lib/panel';
+
+export const STORAGE_KEY = 'orbit_demo_state_v5';
+
+const CHAT_SEED: ChatMessage[] = [
+  {
+    id: 'MSG-0001',
+    boardId: 'BRD-001',
+    channel: 'PANEL',
+    authorId: 'DEV-PRES-01',
+    authorName: 'Col Laura Miller',
+    role: 'Board President',
+    text: 'Panel channel is open. Use the record thread for anything about one officer. Everything here is logged to DELTA. No health information.',
+    at: '2026-10-27T13:00:00Z',
+    pinned: true
+  },
+  {
+    id: 'MSG-0002',
+    boardId: 'BRD-001',
+    channel: 'PDO-002',
+    authorId: 'PANEL-02',
+    authorName: 'Lt Col Elena Rostova',
+    role: 'Panelist',
+    text: 'The 2024 strat is strong but the SOI does not say which billet comes first. Worth a look before we score.',
+    at: '2026-10-27T14:10:00Z',
+    pinned: false
+  }
+];
 
 export function getDefaultLandingForRole(role: Role): string {
   switch (role) {
+    case 'Board President':
     case 'Panelist':
       return 'VIEW-CandidateQueue';
     case 'Board Recorder':
@@ -148,6 +177,9 @@ export function createInitialState(): AppState {
     kpis: INITIAL_KPIS,
     canonicalFiles: SAMPLE_CANONICAL_FILES,
 
+    chat: CHAT_SEED,
+    closedThreads: [],
+
     activeProposalMode: 'Official',
     officialMatches,
     sandboxMatches: [...officialMatches],
@@ -216,7 +248,30 @@ export type Action =
   | { type: 'SET_REPLAY_INDEX'; index: number | null }
   | { type: 'CERTIFY_OOM'; boardId: string }
   | { type: 'CLEAR_BOARD_EXCEPTIONS'; boardId: string }
+  | { type: 'POST_CHAT'; channel: string; text: string }
+  | { type: 'PIN_MESSAGE'; messageId: string }
+  | { type: 'CLOSE_THREAD'; candidateId: string }
+  | { type: 'CALL_REVOTE'; candidateId: string; reason: string }
+  | { type: 'LOG_RECORD_OPEN'; candidateId: string; document: string }
   | { type: 'RESET_DEMO' };
+
+function nextMessageId(chat: ChatMessage[]): string {
+  return `MSG-${(chat.length + 1).toString().padStart(4, '0')}`;
+}
+
+function systemMessage(state: AppState, channel: string, text: string): ChatMessage {
+  return {
+    id: nextMessageId(state.chat),
+    boardId: state.selectedBoardId,
+    channel,
+    authorId: 'SYSTEM',
+    authorName: 'ORBIT',
+    role: 'System',
+    text,
+    at: new Date().toISOString(),
+    pinned: false
+  };
+}
 
 export function appReducer(state: AppState, action: Action): AppState {
   switch (action.type) {
@@ -281,11 +336,14 @@ export function appReducer(state: AppState, action: Action): AppState {
     case 'SUBMIT_SCORE': {
       const { candidateId, score } = action;
       const cand = state.candidates.find(c => c.id === candidateId);
-      if (!cand) return state;
+      if (!cand || !canScore(state.currentRole)) return state; // only voting roles score
+      if (getMyScore(cand, state) !== null) return state; // a second vote is a revision
 
-      const newScores = [...cand.scores, { panelistId: 'USER-ME', value: score, at: new Date().toISOString() }];
+      const key = scoreKeyFor(state);
+      const isPresident = state.currentRole === 'Board President';
+      const newScores = [...cand.scores, { panelistId: key, value: score, at: new Date().toISOString() }];
       const updatedCandidates = state.candidates.map(c =>
-        c.id === candidateId ? { ...c, myScore: score, scores: newScores } : c
+        c.id === candidateId ? { ...c, myScore: isPresident ? c.myScore : score, scores: newScores } : c
       );
 
       const delta = createDeltaEntry(
@@ -310,9 +368,12 @@ export function appReducer(state: AppState, action: Action): AppState {
       const cand = state.candidates.find(c => c.id === candidateId);
       if (!cand) return state;
 
-      const newScores = cand.scores.map(s => (s.panelistId === 'USER-ME' ? { ...s, value: score } : s));
+      if (!canScore(state.currentRole)) return state;
+      const key = scoreKeyFor(state);
+      const isPresident = state.currentRole === 'Board President';
+      const newScores = cand.scores.map(s => (s.panelistId === key ? { ...s, value: score } : s));
       const updatedCandidates = state.candidates.map(c =>
-        c.id === candidateId ? { ...c, myScore: score, scores: newScores } : c
+        c.id === candidateId ? { ...c, myScore: isPresident ? c.myScore : score, scores: newScores } : c
       );
 
       const delta = createDeltaEntry(
@@ -354,9 +415,20 @@ export function appReducer(state: AppState, action: Action): AppState {
         { candidateId, flagged: newFlagState, reason }
       );
 
+      // Flag and chat share one record thread: the flag opens (or notes) the discussion.
+      const note = systemMessage(
+        state,
+        candidateId,
+        newFlagState
+          ? `${state.actorName} flagged this record for discussion: ${reason || 'General review'}`
+          : `${state.actorName} cleared the flag on this record`
+      );
+
       return {
         ...state,
         candidates: updatedCandidates,
+        chat: [...state.chat, note],
+        closedThreads: newFlagState ? state.closedThreads.filter(id => id !== candidateId) : state.closedThreads,
         ledger: [...state.ledger, delta]
       };
     }
@@ -987,9 +1059,114 @@ export function appReducer(state: AppState, action: Action): AppState {
       return { ...state, replayIndex: action.index };
     }
 
+    case 'POST_CHAT': {
+      const text = action.text.trim();
+      if (!text || !canPostChat(state.currentRole)) return state;
+      if (containsPossiblePhi(text)) return state; // the composer warns; the reducer is the control
+      if (action.channel !== 'PANEL' && state.closedThreads.includes(action.channel)) return state;
+      const msg: ChatMessage = {
+        id: nextMessageId(state.chat),
+        boardId: state.selectedBoardId,
+        channel: action.channel,
+        authorId: state.userId || 'ORBIT-APP',
+        authorName: state.actorName,
+        role: state.currentRole,
+        text: text.slice(0, 1000),
+        at: new Date().toISOString(),
+        pinned: false
+      };
+      const delta = createDeltaEntry(
+        state.ledger,
+        state.actorName,
+        state.currentRole,
+        action.channel === 'PANEL' ? state.selectedBoardId : action.channel,
+        'PANEL_MESSAGE',
+        `${msg.id} posted to ${action.channel === 'PANEL' ? 'panel channel' : `thread ${action.channel}`}`,
+        { messageId: msg.id, channel: action.channel, text: msg.text }
+      );
+      return { ...state, chat: [...state.chat, msg], ledger: [...state.ledger, delta] };
+    }
+
+    case 'PIN_MESSAGE': {
+      if (state.currentRole !== 'Board President') return state;
+      const msg = state.chat.find(m => m.id === action.messageId);
+      if (!msg) return state;
+      const delta = createDeltaEntry(
+        state.ledger,
+        state.actorName,
+        state.currentRole,
+        msg.channel === 'PANEL' ? msg.boardId : msg.channel,
+        'MESSAGE_PIN',
+        `${msg.pinned ? 'Unpinned' : 'Pinned'} ${msg.id}`,
+        { messageId: msg.id, pinned: !msg.pinned }
+      );
+      return {
+        ...state,
+        chat: state.chat.map(m => (m.id === msg.id ? { ...m, pinned: !m.pinned } : m)),
+        ledger: [...state.ledger, delta]
+      };
+    }
+
+    case 'CLOSE_THREAD': {
+      if (state.currentRole !== 'Board President' || state.closedThreads.includes(action.candidateId)) return state;
+      const delta = createDeltaEntry(
+        state.ledger,
+        state.actorName,
+        state.currentRole,
+        action.candidateId,
+        'THREAD_CLOSE',
+        `Board President closed the discussion thread for ${action.candidateId}`,
+        { candidateId: action.candidateId }
+      );
+      return {
+        ...state,
+        chat: [...state.chat, systemMessage(state, action.candidateId, `${state.actorName} closed this thread`)],
+        closedThreads: [...state.closedThreads, action.candidateId],
+        ledger: [...state.ledger, delta]
+      };
+    }
+
+    case 'CALL_REVOTE': {
+      if (state.currentRole !== 'Board President') return state;
+      const cand = state.candidates.find(c => c.id === action.candidateId);
+      if (!cand) return state;
+      const reason = action.reason.trim() || 'Board President called a re-vote';
+      const delta = createDeltaEntry(
+        state.ledger,
+        state.actorName,
+        state.currentRole,
+        cand.id,
+        'REVOTE_CALL',
+        `Re-vote called on ${cand.name}: ${reason}`,
+        { candidateId: cand.id, reason }
+      );
+      return {
+        ...state,
+        candidates: state.candidates.map(c =>
+          c.id === cand.id ? { ...c, flagged: true, flagReason: `Re-vote called: ${reason}` } : c
+        ),
+        chat: [...state.chat, systemMessage(state, cand.id, `Re-vote called by the Board President: ${reason}`)],
+        closedThreads: state.closedThreads.filter(id => id !== cand.id),
+        ledger: [...state.ledger, delta]
+      };
+    }
+
+    case 'LOG_RECORD_OPEN': {
+      const delta = createDeltaEntry(
+        state.ledger,
+        state.actorName,
+        state.currentRole,
+        action.candidateId,
+        'RECORD_OPEN',
+        `Opened full text: ${action.document}`,
+        { candidateId: action.candidateId, document: action.document }
+      );
+      return { ...state, ledger: [...state.ledger, delta] };
+    }
+
     case 'RESET_DEMO': {
       try {
-        localStorage.removeItem('orbit_demo_state_v4');
+        localStorage.removeItem(STORAGE_KEY);
       } catch {
         // ignore
       }

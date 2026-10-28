@@ -70,7 +70,7 @@ button { font: inherit; color: inherit; }
 
 /* Role picker */
 .picker-label { font-family: var(--f-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
-.picker { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 8px; }
+.picker { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 8px; }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
 .role-btn {
   text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer;
@@ -192,9 +192,10 @@ dialog button { background: #1e2d45; border: 0; color: #e6edf7; border-radius: 6
     <h2 id="rules-h">Rules that apply to everyone</h2>
     <div class="rules">
       <div class="card"><h3>AI is advisory</h3><p>Anything with a purple <strong>AI</strong> badge is a suggestion. A person signs off, and the sign-off is logged.</p></div>
-      <div class="card"><h3>Every action is recorded</h3><p>Scores, overrides, sign-offs, and denials go to the <strong>DELTA Ledger</strong>, a hash-chained log. The header shows <strong>Chain Verified</strong> when it is intact.</p></div>
+      <div class="card"><h3>Every action is recorded</h3><p>Scores, overrides, sign-offs, chat messages, document opens, and denials go to the <strong>DELTA Ledger</strong>, a hash-chained log. The header shows <strong>Chain Verified</strong> when it is intact.</p></div>
       <div class="card"><h3>Reasons are required</h3><p>Overrides need a written reason of at least 20 characters. Flags need a reason too.</p></div>
-      <div class="card"><h3>No anchoring</h3><p>Panelists score first. The model score and panel average appear only after submitting.</p></div>
+      <div class="card"><h3>No anchoring</h3><p>Panelists and the Board President score first. The AI fit value, model score, and panel average appear only after they submit.</p></div>
+      <div class="card"><h3>Panel chat is on the record</h3><p>Every message, pin, and closed thread goes to the DELTA Ledger. No health information: the composer blocks it.</p></div>
       <div class="card"><h3>Talent data is walled off</h3><p>Risk of Loss, Talent Score, and the N-Box never reach Panelists and never feed scoring or the Order of Merit.</p></div>
       <div class="card"><h3>Fictional data only</h3><p>Every name, ID, and PAS code here is invented. Do not enter real personnel data. <strong>Reset Demo</strong> in the footer restores the start state.</p></div>
     </div>

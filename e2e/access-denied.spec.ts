@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 
 // INTENT-001 AC-8: unknown identity or unmapped role lands on "No access" and logs ACCESS_DENIED.
 const DEV_USER_KEY = 'orbit_dev_user';
-const STATE_KEY = 'orbit_demo_state_v4';
+const STATE_KEY = 'orbit_demo_state_v5';
 
 async function signInAs(page: Page, userId: string) {
   await page.addInitScript(([k, v]) => localStorage.setItem(k, v), [DEV_USER_KEY, userId]);

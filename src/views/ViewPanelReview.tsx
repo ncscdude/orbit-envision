@@ -4,6 +4,9 @@ import { Candidate } from '../types';
 import { AiBadge } from '../components/AiBadge';
 import { cosineSimilarity } from '../lib/stats';
 import { RequireRole } from '../auth/RequireRole';
+import { canReadChat, canScore, fitVisible, getMyScore } from '../lib/panel';
+import { PanelChat } from '../components/PanelChat';
+import { FullTextReader, ReaderTab } from '../components/FullTextReader';
 import {
   FileText,
   Award,
@@ -18,7 +21,11 @@ import {
   AlertTriangle,
   Send,
   ExternalLink,
-  BarChart3
+  BarChart3,
+  BookOpen,
+  MessageSquare,
+  EyeOff,
+  RotateCcw
 } from 'lucide-react';
 
 const ViewPanelReviewContent: React.FC = () => {
@@ -30,17 +37,26 @@ const ViewPanelReviewContent: React.FC = () => {
   const [showHotkeysHelp, setShowHotkeysHelp] = useState(false);
   const [reviseConfirmOpen, setReviseConfirmOpen] = useState(false);
   const [revisionReasonText, setRevisionReasonText] = useState('');
+  const [readerTab, setReaderTab] = useState<ReaderTab | null>(null);
+  const [showChat, setShowChat] = useState(false);
+  const [revoteOpen, setRevoteOpen] = useState(false);
+  const [revoteReason, setRevoteReason] = useState('');
 
-  // Selected candidate lookup
-  const candidateIndex = state.candidates.findIndex(c => c.id === state.selectedCandidateId);
-  const candidate: Candidate = state.candidates[candidateIndex >= 0 ? candidateIndex : 0];
+  // Navigation stays inside the selected board's roster (A-4)
+  const boardPool = useMemo(() => {
+    const onBoard = state.candidates.filter(c => c.boardId === state.selectedBoardId);
+    return onBoard.length > 0 ? onBoard : state.candidates;
+  }, [state.candidates, state.selectedBoardId]);
+  const candidateIndex = Math.max(0, boardPool.findIndex(c => c.id === state.selectedCandidateId));
+  const candidate: Candidate = boardPool[candidateIndex];
+  const voter = canScore(state.currentRole);
+  const myScore = candidate ? getMyScore(candidate, state) : null;
 
   // Sync selected score when candidate changes
+  const candidateId = candidate?.id;
   useEffect(() => {
-    if (candidate) {
-      setSelectedScore(candidate.myScore);
-    }
-  }, [candidate?.id, candidate?.myScore]);
+    setSelectedScore(myScore);
+  }, [candidateId, myScore]);
 
   // Hotkey navigation: Alt+1 to Alt+8 for lenses, 1-5 for scoring
   useEffect(() => {
@@ -118,24 +134,25 @@ const ViewPanelReviewContent: React.FC = () => {
   const scoreOptions = [6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0];
 
   // Anti-anchoring rule: modelScore and panelAvg hidden until human submits!
-  const hasSubmitted = candidate.myScore !== null;
+  const hasSubmitted = myScore !== null;
+  const showFit = fitVisible(candidate, state);
   const panelScores = candidate.scores.map(s => s.value);
   const panelAvg = panelScores.length > 0 ? (panelScores.reduce((a, b) => a + b, 0) / panelScores.length).toFixed(1) : '8.1';
   const modelScore = (candidate.mScore / 10).toFixed(1);
 
   const handleNextCandidate = () => {
-    const nextIdx = (candidateIndex + 1) % state.candidates.length;
-    dispatch({ type: 'SELECT_CANDIDATE', candidateId: state.candidates[nextIdx].id });
+    const nextIdx = (candidateIndex + 1) % boardPool.length;
+    dispatch({ type: 'SELECT_CANDIDATE', candidateId: boardPool[nextIdx].id });
   };
 
   const handlePrevCandidate = () => {
-    const prevIdx = (candidateIndex - 1 + state.candidates.length) % state.candidates.length;
-    dispatch({ type: 'SELECT_CANDIDATE', candidateId: state.candidates[prevIdx].id });
+    const prevIdx = (candidateIndex - 1 + boardPool.length) % boardPool.length;
+    dispatch({ type: 'SELECT_CANDIDATE', candidateId: boardPool[prevIdx].id });
   };
 
   const handleSubmitScore = () => {
-    if (selectedScore === null) return;
-    if (hasSubmitted && selectedScore !== candidate.myScore) {
+    if (selectedScore === null || !voter) return;
+    if (hasSubmitted && selectedScore !== myScore) {
       setReviseConfirmOpen(true);
       return;
     }
@@ -201,7 +218,36 @@ const ViewPanelReviewContent: React.FC = () => {
         </div>
 
         {/* Candidate Switcher Controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setReaderTab('SOI')}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-semibold text-cyan-200 bg-cyan-950/70 border border-cyan-800 hover:bg-cyan-900"
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>Read full record</span>
+          </button>
+          {canReadChat(state.currentRole) && (
+            <button
+              type="button"
+              onClick={() => setShowChat(v => !v)}
+              aria-expanded={showChat}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-semibold text-slate-200 bg-[#05080f] border border-[#1e2d45] hover:border-cyan-700"
+            >
+              <MessageSquare className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Discuss ({state.chat.filter(m => m.channel === candidate.id).length})</span>
+            </button>
+          )}
+          {state.currentRole === 'Board President' && (
+            <button
+              type="button"
+              onClick={() => setRevoteOpen(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-semibold text-purple-200 bg-purple-950/60 border border-purple-800 hover:bg-purple-900"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Call re-vote</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={handlePrevCandidate}
@@ -211,7 +257,7 @@ const ViewPanelReviewContent: React.FC = () => {
             <ChevronLeft className="w-4 h-4" />
           </button>
           <span className="font-mono text-xs text-slate-400 px-2">
-            {candidateIndex + 1} of {state.candidates.length}
+            {candidateIndex + 1} of {boardPool.length}
           </span>
           <button
             type="button"
@@ -435,10 +481,17 @@ const ViewPanelReviewContent: React.FC = () => {
                   <span>Algorithmic Fit & Feature Weight Drivers</span>
                   <AiBadge />
                 </h3>
-                <span className="font-mono text-purple-300 font-bold text-sm">
-                  LLM Fit: {candidate.llmFitScore}% · mScore: {candidate.mScore}
-                </span>
+                {showFit ? (
+                  <span className="font-mono text-purple-300 font-bold text-sm">
+                    LLM Fit: {candidate.llmFitScore}% · mScore: {candidate.mScore}
+                  </span>
+                ) : (
+                  <span className="font-mono text-slate-400 text-xs flex items-center gap-1">
+                    <EyeOff className="w-3.5 h-3.5" /> Fit value shows after you score
+                  </span>
+                )}
               </div>
+              {showFit && (
               <div className="space-y-2">
                 {candidate.featureDrivers.map((fd, i) => (
                   <div key={i} className="p-2.5 bg-[#05080f] border border-[#1e2d45] rounded text-xs flex justify-between">
@@ -447,6 +500,7 @@ const ViewPanelReviewContent: React.FC = () => {
                   </div>
                 ))}
               </div>
+              )}
             </div>
           )}
 
@@ -455,8 +509,14 @@ const ViewPanelReviewContent: React.FC = () => {
             <div className="space-y-4">
               <div className="bg-[#0a1020] border border-[#1e2d45] rounded-md p-4 space-y-3">
                 <div className="flex items-center justify-between border-b border-[#1e2d45] pb-2">
-                  <h3 className="font-semibold text-white text-sm">Full Statement of Intent (SOI)</h3>
-                  <span className="font-mono text-xs text-slate-400">{candidate.soi.wordCount} words</span>
+                  <h3 className="font-semibold text-white text-sm">Statement of Intent (SOI)</h3>
+                  <button
+                    type="button"
+                    onClick={() => setReaderTab('SOI')}
+                    className="font-mono text-xs text-cyan-300 hover:text-white underline"
+                  >
+                    Open full SOI, commander's comments, appraisals
+                  </button>
                 </div>
                 <p className="text-xs text-slate-200 leading-relaxed bg-[#05080f] p-3 rounded border border-[#1e2d45]">
                   {candidate.soi.text}
@@ -606,11 +666,22 @@ const ViewPanelReviewContent: React.FC = () => {
 
             {/* 3-Paragraph Synthesis */}
             <div className="space-y-2 text-xs text-slate-300 leading-relaxed font-sans">
-              {candidate.chatSnapshot.summary.map((para, idx) => (
-                <p key={idx} className="bg-[#05080f] p-2.5 rounded border border-[#1e2d45]">
-                  {para}
-                </p>
-              ))}
+              {candidate.chatSnapshot.summary.map((para, idx) => {
+                const src: { tab: ReaderTab; label: string } =
+                  idx === 0 ? { tab: 'SOI', label: 'SOI' } : idx === 1 ? { tab: 'Appraisals', label: 'Appraisals' } : { tab: 'Commander', label: "Commander's comments" };
+                return (
+                  <div key={idx} className="bg-[#05080f] p-2.5 rounded border border-[#1e2d45] space-y-1">
+                    <p>{para}</p>
+                    <button
+                      type="button"
+                      onClick={() => setReaderTab(src.tab)}
+                      className="font-mono text-[10px] text-cyan-400 hover:text-white underline"
+                    >
+                      Check against source: {src.label}
+                    </button>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Highlighted Strengths */}
@@ -680,6 +751,48 @@ const ViewPanelReviewContent: React.FC = () => {
         </div>
       </div>
 
+      {showChat && canReadChat(state.currentRole) && (
+        <PanelChat candidateId={candidate.id} candidateName={candidate.name} onClose={() => setShowChat(false)} />
+      )}
+
+      {readerTab && <FullTextReader candidate={candidate} startOn={readerTab} onClose={() => setReaderTab(null)} />}
+
+      {revoteOpen && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Call re-vote">
+          <div className="bg-[#0a1020] border border-purple-800 rounded-md w-full max-w-md p-4 space-y-3 text-xs">
+            <h3 className="font-bold text-white text-sm flex items-center gap-2">
+              <RotateCcw className="w-4 h-4 text-purple-300" /> Call a re-vote on {candidate.name}
+            </h3>
+            <p className="text-slate-400">Flags the record, posts to its thread, and logs to DELTA. Panel members then revise their scores with a reason.</p>
+            <textarea
+              value={revoteReason}
+              onChange={e => setRevoteReason(e.target.value)}
+              rows={3}
+              aria-label="Re-vote reason"
+              placeholder="Reason (for example: scores split after new appraisal context)"
+              className="w-full bg-[#05080f] border border-[#1e2d45] rounded p-2 text-white focus:outline-hidden focus:border-purple-400"
+            />
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setRevoteOpen(false)} className="px-3 py-1.5 rounded border border-[#1e2d45] text-slate-300">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  dispatch({ type: 'CALL_REVOTE', candidateId: candidate.id, reason: revoteReason });
+                  setRevoteOpen(false);
+                  setRevoteReason('');
+                  setShowChat(true);
+                }}
+                className="px-3 py-1.5 rounded bg-purple-800 border border-purple-600 text-white font-semibold"
+              >
+                Call re-vote
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Sticky Bottom Scoring Dock (Anti-Anchoring Enforced) */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#0a1020]/95 backdrop-blur-md border-t border-[#1e2d45] px-4 py-2.5 shadow-2xl no-print">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
@@ -697,6 +810,11 @@ const ViewPanelReviewContent: React.FC = () => {
           </div>
 
           {/* Scoring Buttons (6.0 to 10.0 in 0.5 steps) */}
+          {!voter ? (
+            <span className="text-slate-400 italic bg-[#05080f] px-2 py-1 rounded border border-[#1e2d45]">
+              View only: your role does not vote. Scores in: {candidate.scores.length}
+            </span>
+          ) : (
           <div className="flex items-center gap-1.5 flex-wrap">
             {scoreOptions.map(sc => {
               const isSelected = selectedScore === sc;
@@ -716,16 +834,21 @@ const ViewPanelReviewContent: React.FC = () => {
               );
             })}
           </div>
+          )}
 
           {/* Anti-Anchoring Reveal or Hidden State */}
           <div className="flex items-center gap-3 text-[11px] font-mono">
-            {hasSubmitted ? (
+            {hasSubmitted || !voter ? (
               <div className="flex items-center gap-2 bg-[#05080f] px-2.5 py-1 rounded border border-cyan-800/80">
                 <span className="text-slate-400">Model: <strong className="text-purple-300">{modelScore}</strong></span>
                 <span className="text-slate-600">|</span>
                 <span className="text-slate-400">Panel Avg: <strong className="text-cyan-300">{panelAvg}</strong></span>
-                <span className="text-slate-600">|</span>
-                <span className="text-slate-400">Delta: <strong className="text-emerald-400">{(candidate.myScore! - Number(panelAvg)).toFixed(1)}</strong></span>
+                {myScore !== null && (
+                  <>
+                    <span className="text-slate-600">|</span>
+                    <span className="text-slate-400">Delta: <strong className="text-emerald-400">{(myScore - Number(panelAvg)).toFixed(1)}</strong></span>
+                  </>
+                )}
               </div>
             ) : (
               <span className="text-slate-500 italic bg-[#05080f] px-2 py-1 rounded border border-[#1e2d45]">
@@ -734,7 +857,8 @@ const ViewPanelReviewContent: React.FC = () => {
             )}
           </div>
 
-          {/* Action Buttons: Submit & Flag */}
+          {/* Action Buttons: Submit & Flag (voters only) */}
+          {voter && (
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -759,6 +883,7 @@ const ViewPanelReviewContent: React.FC = () => {
               <span>{hasSubmitted ? 'Update Score' : 'Submit & Next'}</span>
             </button>
           </div>
+          )}
         </div>
 
         {/* Hotkeys Popover */}
@@ -817,7 +942,7 @@ const ViewPanelReviewContent: React.FC = () => {
               Confirm Score Revision
             </h3>
             <p className="text-xs text-slate-400">
-              You are updating your score from {candidate.myScore?.toFixed(1)} to {selectedScore?.toFixed(1)}. Please provide a brief justification for the DELTA audit trail.
+              You are updating your score from {myScore?.toFixed(1)} to {selectedScore?.toFixed(1)}. Please provide a brief justification for the DELTA audit trail.
             </p>
             <textarea
               rows={3}

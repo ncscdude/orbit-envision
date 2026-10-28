@@ -11,7 +11,7 @@ import { appReducer, createInitialState } from '../state/reducer';
 import { verifyChain } from '../state/delta';
 import type { Role } from '../types';
 
-const ALL_ROLES: Role[] = ['Panelist', 'Board Recorder', 'BMO Lead', 'Assignments Officer', 'HQ Strategic Viewer', 'CFM / Career Planner'];
+const ALL_ROLES: Role[] = ['Board President', 'Panelist', 'Board Recorder', 'BMO Lead', 'Assignments Officer', 'HQ Strategic Viewer', 'CFM / Career Planner'];
 
 function memoryStorage(initial: Record<string, string> = {}) {
   const data = { ...initial };

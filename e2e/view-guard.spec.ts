@@ -3,8 +3,8 @@ import { EXPERIENCES } from '../src/registry/experiences';
 
 // INTENT-001 AC-9: each view checks the role itself. Opening a forbidden view by
 // state change (not through the nav) shows the denial screen and logs ACCESS_DENIED.
-const STATE_KEY = 'orbit_demo_state_v4';
-const ROLES = ['Panelist', 'Board Recorder', 'BMO Lead', 'Assignments Officer', 'HQ Strategic Viewer', 'CFM / Career Planner'] as const;
+const STATE_KEY = 'orbit_demo_state_v5';
+const ROLES = ['Board President', 'Panelist', 'Board Recorder', 'BMO Lead', 'Assignments Officer', 'HQ Strategic Viewer', 'CFM / Career Planner'] as const;
 const LIVE = EXPERIENCES.filter(e => e.status === 'Live');
 
 async function switchRole(page: Page, role: string) {

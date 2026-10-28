@@ -1,5 +1,18 @@
 # Changelog
 
+## cloudflare-host 0.6.0 (2026-10-28)
+Approved role map (ORBIT Tool Reference, section 1). Board President votes.
+- A-1 Board President role (DEV-PRES-01): votes under its own seat, panel oversight table, call re-vote, pin and close threads, owns Scoring Audit, certifies OoM with the BMO Lead. Rule 5 still applies.
+- A-2 Panel chat: record threads (shared with Flag) and a board-wide panel channel. Panelist and President post; Board Recorder reads. Every post, pin, and close logged to DELTA. Health-information words blocked in the composer and the reducer.
+- A-3 Full-text reader: complete SOI, commander's comments, and appraisals with numbered paragraphs; Scribe lines link to their source. Opening is logged (RECORD_OPEN).
+- A-4 Per-board rosters: queue and Panel Workspace show only the selected board's records; "How this list was built" shows the roster rules, source, and BMO-review records.
+- A-5 AI fit hidden from voters until they score (queue, Panel Workspace, Cross Analytics for the President). Voters' queue sorts by record ID so order does not leak the value.
+- A-7 Panelist removed from Command Center, Cross Analytics, Board Statistics, Scoring Audit; DELTA shows a Panelist only their own entries. BMO Lead no longer scores.
+- Assignments Officer removed from Candidate Queue. Demo storage key moved to v5.
+- Field Guide: Board President walkthrough, updated Panelist steps and role tabs, 7 new screenshots.
+- Tests: 12 new unit tests, 4 new acceptance tests; Board President added to the view-guard matrix.
+- Not yet done: A-6 (replace typed values with computed ones).
+
 ## cloudflare-host 0.5.2 (2026-10-27)
 - Hostname set to orbit.ncscdude.com and pinned by the hosting test.
 - Added scripts/deploy-orbit.ps1 one-step deploy.

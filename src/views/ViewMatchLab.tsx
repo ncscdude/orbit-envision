@@ -130,7 +130,7 @@ ${currentMatches
 
 3. CRYPTOGRAPHIC VERIFICATION:
 Audit Package Hash: ${state.ledger.length > 0 ? state.ledger[state.ledger.length - 1].hash : 'SHA256_UNVERIFIED'}
-Releasing Authority: Col Marcus Vance, Board Chair & BMO Leadership
+Releasing Authority: Col Laura Miller, Board President & BMO Leadership
 
 DRAFT MEMORANDUM // FOR OFFICIAL USE ONLY // NOT FOR OPERATIONAL RELEASE`;
   }, [currentMatches, state.candidates, state.billets, state.ledger]);

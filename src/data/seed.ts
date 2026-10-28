@@ -35,7 +35,8 @@ const rng = mulberry32(19820514);
 // Roles are not stored here; they come from the role table in src/auth/roleMap.ts.
 export const DEV_USERS_SEED: { userId: string; displayName: string }[] = [
   { userId: 'DEV-BMO-01', displayName: 'Col Vance (BMO Lead)' },
-  { userId: 'DEV-PANEL-01', displayName: 'Col Marcus Vance (Chair)' },
+  { userId: 'DEV-PRES-01', displayName: 'Col Laura Miller (Board President)' },
+  { userId: 'DEV-PANEL-01', displayName: 'Col Marcus Vance (Panelist)' },
   { userId: 'DEV-REC-01', displayName: 'MSgt Daniel Rivera (Recorder)' },
   { userId: 'DEV-ASG-01', displayName: 'Lt Col David Sterling (Assignments)' },
   { userId: 'DEV-HQ-01', displayName: 'Maj Gen Travis Hayes (HQ Strategic)' },
@@ -44,7 +45,7 @@ export const DEV_USERS_SEED: { userId: string; displayName: string }[] = [
 ];
 
 export const PANELIST_PROFILES = [
-  { id: 'PANEL-01', name: 'Col Marcus Vance', role: 'Chair / Senior Evaluator' },
+  { id: 'PANEL-01', name: 'Col Marcus Vance', role: 'Senior Evaluator' },
   { id: 'PANEL-02', name: 'Lt Col Elena Rostova', role: 'Orbital Ops Specialist' }, // Tends harsh
   { id: 'PANEL-03', name: 'Lt Col David Sterling', role: 'Acquisition & Cyber Lead' }, // Tends lenient
   { id: 'PANEL-04', name: 'Maj Sarah Lin', role: 'Intelligence / Strike Evaluator' },
@@ -1923,7 +1924,7 @@ export const RISKS_SEED: Risk[] = [
 ];
 
 export const STAFF_SLOTS_SEED: StaffSlot[] = [
-  { boardId: 'BRD-001', role: 'Board President', assigned: true, name: 'Maj Gen Travis E. Hayes' },
+  { boardId: 'BRD-001', role: 'Board President', assigned: true, name: 'Col Laura Miller' },
   { boardId: 'BRD-001', role: 'Panelist', assigned: true, name: 'Col Marcus Vance' },
   { boardId: 'BRD-001', role: 'Panelist', assigned: true, name: 'Lt Col Elena Rostova' },
   { boardId: 'BRD-001', role: 'Panelist', assigned: true, name: 'Lt Col David Sterling' },
@@ -1934,7 +1935,7 @@ export const STAFF_SLOTS_SEED: StaffSlot[] = [
   { boardId: 'BRD-001', role: 'Panelist', assigned: true, name: 'Lt Col Brian Vance' },
   { boardId: 'BRD-001', role: 'Panelist', assigned: true, name: 'Maj Nicole Chen' },
   { boardId: 'BRD-001', role: 'Panelist', assigned: true, name: 'Lt Col Thomas Scott' },
-  { boardId: 'BRD-001', role: 'Panelist', assigned: true, name: 'Col Laura Miller' },
+  { boardId: 'BRD-001', role: 'Panelist', assigned: true, name: 'Lt Col James Ortiz' },
   { boardId: 'BRD-001', role: 'Panelist', assigned: true, name: 'Maj Richard Byrd' },
   // 12/14 assigned
   { boardId: 'BRD-001', role: 'Panelist', assigned: false },
