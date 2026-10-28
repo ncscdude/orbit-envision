@@ -32,9 +32,9 @@ test('computeBoardStatistics handles portfolio boards deterministically', () => 
   assert.equal(completeStats.scoring.pendingCount, 0, 'Complete board should have 0 pending');
 });
 
-test('getBoardRolePermissions returns accurate permission profile for all 7 roles', () => {
+test('getBoardRolePermissions returns accurate permission profile for all 8 roles', () => {
   const allPerms = getAllBoardRolePermissions();
-  assert.equal(allPerms.length, 7, 'Should define exactly 7 roles');
+  assert.equal(allPerms.length, 8, 'Should define exactly 8 roles');
 
   const president = getBoardRolePermissions('Board President');
   assert.equal(president.accessLevel, 'PANEL_OVERSIGHT');

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useOrbit } from '../state/context';
+import { useNav } from '../state/useNav';
 import { computeBoardStatistics, getBoardRolePermissions, getAllBoardRolePermissions, canExecuteBoardAction } from '../lib/boardStats';
 import {
   ShieldAlert,
@@ -18,12 +19,15 @@ import { RequireRole } from '../auth/RequireRole';
 
 const ViewBoardDetailContent: React.FC = () => {
   const { state, dispatch } = useOrbit();
+  const { may, go } = useNav();
   const [activeTab, setActiveTab] = useState<'overview' | 'scoring' | 'docket' | 'milestones' | 'governance'>('overview');
   const [docketFilter, setDocketFilter] = useState<'All' | 'Pending' | 'Scored' | 'Exceptions'>('All');
 
   const selectedBoard = useMemo(() => {
     return state.boards.find(b => b.id === state.selectedBoardId) || state.boards[0];
   }, [state.boards, state.selectedBoardId]);
+  // Panelist sees Board Statistics in limited form until the Order of Merit is certified
+  const limited = state.currentRole === 'Panelist' && selectedBoard.status !== 'Complete';
 
   const boardStats = useMemo(() => {
     return computeBoardStatistics(selectedBoard.id, state);
@@ -83,7 +87,7 @@ const ViewBoardDetailContent: React.FC = () => {
 
   const handleInspectCandidate = (candidateId: string) => {
     dispatch({ type: 'SELECT_CANDIDATE', candidateId });
-    dispatch({ type: 'SET_VIEW', viewId: 'VIEW-PanelReview' });
+    go('VIEW-PanelReview');
   };
 
   return (
@@ -225,17 +229,19 @@ const ViewBoardDetailContent: React.FC = () => {
             )}
 
             {/* Navigate to Candidate Queue */}
+            {may('VIEW-CandidateQueue') && (
             <button
               type="button"
               onClick={() => {
                 dispatch({ type: 'SET_BOARD', boardId: selectedBoard.id });
-                dispatch({ type: 'SET_VIEW', viewId: 'VIEW-CandidateQueue' });
+                go('VIEW-CandidateQueue');
               }}
               className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium text-slate-200 bg-[#05080f] border border-[#1e2d45] hover:border-cyan-500/60 transition-colors"
             >
               <span>View Docket</span>
               <ArrowRight className="w-3.5 h-3.5 text-cyan-400" />
             </button>
+            )}
           </div>
         </div>
 
@@ -285,7 +291,7 @@ const ViewBoardDetailContent: React.FC = () => {
             {boardStats.scoring.scoredCount} / {boardStats.totalCandidates}
           </div>
           <div className="text-[11px] text-slate-400 flex items-center justify-between font-mono pt-1">
-            <span>Pool Avg: <strong className="text-white">{boardStats.scoring.poolAvgScore}</strong></span>
+            <span>Pool Avg: <strong className="text-white">{limited ? 'hidden' : boardStats.scoring.poolAvgScore}</strong></span>
             <span>Est: ~{boardStats.scoring.estimatedHoursRemaining}h remaining</span>
           </div>
           <div className="text-[10px] text-slate-400 font-mono">
@@ -338,6 +344,12 @@ const ViewBoardDetailContent: React.FC = () => {
         </div>
       </div>
 
+      {limited && (
+        <div className="px-3 py-2 rounded border border-amber-800/70 bg-amber-950/30 text-xs text-amber-200" role="note">
+          Panelist view: the scoring tab and other members&apos; scores stay hidden until the Order of Merit is certified.
+        </div>
+      )}
+
       {/* Sub-Tabs Navigation */}
       <div className="border-b border-[#1e2d45] flex items-center gap-2 overflow-x-auto text-xs font-medium">
         {[
@@ -346,7 +358,7 @@ const ViewBoardDetailContent: React.FC = () => {
           { id: 'docket', label: `Candidate Docket (${boardCandidates.length})` },
           { id: 'milestones', label: `Milestones & Risks (${boardStats.milestones.totalCount})` },
           { id: 'governance', label: 'Board Governance & Role Permissions' }
-        ].map(tab => (
+        ].filter(tab => !(limited && tab.id === 'scoring')).map(tab => (
           <button
             key={tab.id}
             type="button"
@@ -469,7 +481,7 @@ const ViewBoardDetailContent: React.FC = () => {
       )}
 
       {/* TAB 2: SCORING & EVALUATOR ANALYTICS */}
-      {activeTab === 'scoring' && (
+      {activeTab === 'scoring' && !limited && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Score Distribution Histogram */}
@@ -534,14 +546,16 @@ const ViewBoardDetailContent: React.FC = () => {
                               My Score: {c.myScore?.toFixed(1)} · Panel Avg: {avg.toFixed(1)} · Gap: {gap.toFixed(1)} pts
                             </span>
                           </div>
+                          {may('VIEW-ScoringAudit') && (
                           <button
                             type="button"
-                            onClick={() => dispatch({ type: 'SET_VIEW', viewId: 'VIEW-ScoringAudit' })}
+                            onClick={() => go('VIEW-ScoringAudit')}
                             className="text-[11px] font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
                           >
                             <span>Adjudicate</span>
                             <ArrowRight className="w-3 h-3" />
                           </button>
+                          )}
                         </div>
                       );
                     })}
@@ -555,13 +569,15 @@ const ViewBoardDetailContent: React.FC = () => {
 
               <div className="pt-3 border-t border-[#1e2d45] flex items-center justify-between text-xs">
                 <span className="text-slate-400 font-mono">Scoring Pace: 14.5 records/hr</span>
+                {may('VIEW-ScoringAudit') && (
                 <button
                   type="button"
-                  onClick={() => dispatch({ type: 'SET_VIEW', viewId: 'VIEW-ScoringAudit' })}
+                  onClick={() => go('VIEW-ScoringAudit')}
                   className="text-cyan-400 hover:underline font-medium"
                 >
                   Open Scoring Audit Chamber →
                 </button>
+                )}
               </div>
             </div>
           </div>
@@ -632,9 +648,9 @@ const ViewBoardDetailContent: React.FC = () => {
                         </span>
                       </td>
                       <td className="py-2.5 px-3 text-slate-300">
-                        <span>{poolAvg}</span>
+                        <span>{limited ? '' : poolAvg}</span>
                         {c.myScore !== null && (
-                          <span className="text-cyan-300 ml-1.5">(My: {c.myScore.toFixed(1)})</span>
+                          <span className={`text-cyan-300 ${limited ? '' : 'ml-1.5'}`}>(My: {c.myScore.toFixed(1)})</span>
                         )}
                       </td>
                       <td className="py-2.5 px-3">

@@ -1,5 +1,15 @@
 # Changelog
 
+## cloudflare-host 0.7.0 (2026-10-28)
+- One permission table (`src/auth/permissions.ts`) drives the menu, in-page links, Catalog, Demo Guide, and the Field Guide table. A role is never offered a tool it cannot open.
+- ORBIT Admin role (DEV-ADMIN-01): sees every tool and record; Access Admin page with diagnostics and logged repairs, role requests (BMO Lead approves, no self-changes, 24-hour temporary access), board seating (one President per board), and access review. No vote or board decision: refused and logged (`ADMIN_NO_DECISION`).
+- Panel Oversight page (Board President lands here): sets when panel members see each AI item (Before, During, After, Off) for the LLM Fit value, model score, Scribe summary, similar records and billet fits, panel average, and endorser insights; panel progress; re-votes and flags; record issues sent to the Board Recorder's log; data freshness.
+- Panelist can open Board Statistics in limited form (scoring tab and other members' scores hidden until the Order of Merit is certified).
+- Header link "Roles & Access" opens the Field Guide permission table, generated from the app (`public/guide/permissions.js`, checked by a test).
+- Field Guide: ORBIT Admin walkthrough, Board President AI controls, tabs derived from the permission table, 4 new screenshots.
+- Envision transfer: `docs/ENVISION_TRANSFER.md` and `scripts/build-transfer.mjs` (one-file source context for Gemini or Copilot).
+- Demo storage key v6. Tests: 64 unit, 68 acceptance.
+
 ## cloudflare-host 0.6.0 (2026-10-28)
 Approved role map (ORBIT Tool Reference, section 1). Board President votes.
 - A-1 Board President role (DEV-PRES-01): votes under its own seat, panel oversight table, call re-vote, pin and close threads, owns Scoring Audit, certifies OoM with the BMO Lead. Rule 5 still applies.

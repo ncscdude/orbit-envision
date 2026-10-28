@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { useOrbit } from '../state/context';
 import { EXPERIENCES } from '../registry/experiences';
 import { identityProvider, devIdentityProvider } from '../auth/identity';
-import { ShieldCheck, ShieldAlert, Clock, Layers, BookOpen, ChevronDown, UserCheck } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Clock, Layers, BookOpen, ChevronDown, UserCheck, KeyRound } from 'lucide-react';
+import { effectiveRole } from '../state/reducer';
+import { canOpen } from '../auth/permissions';
 
 interface HeaderProps {
   onOpenCatalog: () => void;
@@ -15,11 +17,17 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCatalog, onOpenDemoGuide }
 
   // Switching users is a dev-adapter feature only; under Envision the role is fixed by identity.
   const canSwitchUser = identityProvider.kind === 'dev';
-  const devUsers = canSwitchUser ? devIdentityProvider.listUsers().filter(u => u.role !== null) : [];
+  // Roles shown here include approved Access Admin changes
+  const devUsers = canSwitchUser
+    ? devIdentityProvider
+        .listUsers()
+        .map(u => ({ ...u, role: effectiveRole(state, u.userId, u.role) }))
+        .filter(u => u.role !== null)
+    : [];
 
-  // Filter live experiences that are permitted for the current role
+  // Menu: only the tools the permission table allows for this role
   const liveExperiences = EXPERIENCES.filter(
-    exp => exp.status === 'Live' && exp.roles.includes(state.currentRole)
+    exp => exp.status === 'Live' && canOpen(state.currentRole, exp.viewId)
   );
 
   const handleUserChange = (userId: string) => {
@@ -97,6 +105,18 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCatalog, onOpenDemoGuide }
             <Layers className="w-3.5 h-3.5 text-cyan-400" />
             <span>Catalog</span>
           </button>
+
+          {/* Who can see what: the Field Guide permissions table (same table the app uses) */}
+          <a
+            href="/guide/#permissions"
+            target="_blank"
+            rel="noopener"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-slate-300 bg-[#05080f] border border-[#1e2d45] hover:text-cyan-300 hover:border-cyan-500/50 transition-colors"
+            title="Opens the Field Guide table of roles and the tools each can see"
+          >
+            <KeyRound className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Roles &amp; Access</span>
+          </a>
 
           {/* Demo Guide Drawer Trigger */}
           <button

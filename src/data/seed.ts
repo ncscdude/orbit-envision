@@ -34,6 +34,7 @@ const rng = mulberry32(19820514);
 // Fictional dev identities for the local identity adapter (INTENT-001).
 // Roles are not stored here; they come from the role table in src/auth/roleMap.ts.
 export const DEV_USERS_SEED: { userId: string; displayName: string }[] = [
+  { userId: 'DEV-ADMIN-01', displayName: 'Ms. Dana Brooks (ORBIT Admin)' },
   { userId: 'DEV-BMO-01', displayName: 'Col Vance (BMO Lead)' },
   { userId: 'DEV-PRES-01', displayName: 'Col Laura Miller (Board President)' },
   { userId: 'DEV-PANEL-01', displayName: 'Col Marcus Vance (Panelist)' },

@@ -24,11 +24,11 @@ function as(identity: typeof PRESIDENT | typeof PANELIST | typeof BMO | typeof R
 
 const unscored = (s: AppState) => s.candidates.find(c => c.myScore === null && !c.scores.some(x => x.panelistId === 'DEV-PRES-01'))!;
 
-test('A-1: the Board President role is in the role table and lands on the Candidate Queue', () => {
+test('A-1: the Board President role is in the role table and lands on Panel Oversight', () => {
   assert.equal(lookupRole('DEV-PRES-01'), 'Board President');
   const s = as(PRESIDENT);
   assert.equal(s.currentRole, 'Board President');
-  assert.equal(s.activeViewId, 'VIEW-CandidateQueue');
+  assert.equal(s.activeViewId, 'VIEW-PanelOversight');
 });
 
 test('A-1: the Board President votes under their own seat, separate from the panelist seat', () => {
@@ -142,7 +142,7 @@ test('A-5: a voter sees the AI fit value only after scoring; non-voters always s
 });
 
 test('A-7: panelists are kept out of tools that show other panelists’ scores', () => {
-  for (const view of ['VIEW-CrossAnalytics', 'VIEW-BoardDetail', 'VIEW-CommandCenter', 'VIEW-ScoringAudit']) {
+  for (const view of ['VIEW-CrossAnalytics', 'VIEW-CommandCenter', 'VIEW-ScoringAudit']) {
     assert.ok(!allowedRolesForView(view).includes('Panelist'), `${view} must not allow Panelist`);
   }
   for (const view of ['VIEW-CandidateQueue', 'VIEW-PanelReview', 'VIEW-ScoringAudit', 'VIEW-CrossAnalytics']) {

@@ -70,7 +70,7 @@ button { font: inherit; color: inherit; }
 
 /* Role picker */
 .picker-label { font-family: var(--f-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
-.picker { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 8px; }
+.picker { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 8px; }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
 .role-btn {
   text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer;
@@ -126,6 +126,11 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .section { margin-top: 36px; display: grid; gap: 14px; }
 .section h2 { font-size: 28px; }
 .section > p { margin: 0; color: var(--muted); max-width: 70ch; }
+.section .legend { font-size: 13px; }
+.section h3.sub { font-size: 18px; margin: 10px 0 0; }
+#matrix td.lvl { font-size: 13px; white-space: nowrap; }
+#matrix td.lvl small { display: block; color: var(--muted); font-size: 11px; white-space: normal; max-width: 16ch; }
+#matrix td.none { color: var(--muted); text-align: center; }
 .rules { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .rules .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0; }
 .rules h3 { font-size: 18px; margin-bottom: 4px; }
@@ -201,14 +206,17 @@ dialog button { background: #1e2d45; border: 0; color: #e6edf7; border-radius: 6
     </div>
   </section>
 
-  <section class="section" aria-labelledby="matrix-h">
-    <h2 id="matrix-h">Which tabs each role sees</h2>
-    <p>Read straight from the live build. "Lands" marks the screen each role opens on.</p>
+  <section class="section" id="permissions" aria-labelledby="matrix-h">
+    <h2 id="matrix-h">Who can see what</h2>
+    <p>Generated from the same permission table the app uses, so this page and the app always agree. A role sees only the tools marked for it in its menu. "Lands" marks the screen each role opens on.</p>
+    <p class="legend"><strong>Full</strong> Admin: sees everything, diagnoses and repairs, never votes or overrides · <strong>Owns</strong> runs the tool · <strong>Votes</strong> scores records · <strong>Uses</strong> acts within its lane · <strong>View</strong> read only · <strong>Limited</strong> read only with parts hidden · <strong>·</strong> not in the menu</p>
     <div class="tablewrap"><table id="matrix"></table></div>
+    <h3 class="sub">What each tool is for</h3>
+    <div class="tablewrap"><table id="purpose"></table></div>
   </section>
 
   <footer class="foot">
-    <span>Screens captured from build <span class="mono">cloudflare-host 745b531</span> (INTENT-001) with the Match Board fix, 27 Oct 2026.</span>
+    <span>Screens captured from build <span class="mono">cloudflare-host 0.7.0</span>, 28 Oct 2026.</span>
     <span>Fictional data. Not for operational use.</span>
   </footer>
 </div>
@@ -217,6 +225,7 @@ dialog button { background: #1e2d45; border: 0; color: #e6edf7; border-radius: 6
   <div class="bar"><span id="lb-cap"></span><button type="button" id="lb-close">Close</button></div>
   <img id="lb-img" alt="">
 </dialog>
+<script src="permissions.js" defer></script>
 <script src="guide.js" defer></script>
 </body>
 </html>

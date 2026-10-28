@@ -1,6 +1,24 @@
-const TABS = ['Command Center','Candidate Queue','Panel Workspace','HELIOS Command','Scoring Audit','Match Lab','Cross Analytics','Career Planner N-Box','Operations Registers','DELTA Ledger','Board Statistics & Roles'];
+// Tool list and each role's tabs come from permissions.js (generated from the app's permission table)
+const PERM = window.ORBIT_PERMISSIONS || null;
+const TABS_FALLBACK = ['Command Center','Candidate Queue','Panel Workspace','HELIOS Command','Scoring Audit','Match Lab','Cross Analytics','Career Planner N-Box','Operations Registers','DELTA Ledger','Board Statistics & Roles'];
+
+const TABS = PERM ? PERM.tools.map(t => t.title) : TABS_FALLBACK;
 
 const ROLES = [
+  { id: 'orbit-admin', name: 'ORBIT Admin', short: 'Runs the system', color: '#ef4444',
+    title: 'System administrator: sees everything, repairs, never decides',
+    question: 'Is everyone in the right role, and is the system healthy?',
+    lands: 'Access Admin',
+    tabs: [],
+    steps: [
+      { t: 'Run diagnostics', d: 'Access Admin opens on Diagnostics & repair: ledger chain, duplicate or out-of-range scores, failed data loads, broken links, seating, and expired temporary access.', img: 'admin-1-diagnostics', cap: 'Access Admin, diagnostics' },
+      { t: 'Repair a glitch', d: 'Click Repair on a finding, give a reason of 20 characters or more, and run it. Repairs fix the system, never a vote, match, or Order of Merit. Each is logged.', img: 'admin-2-repair', cap: 'Access Admin, repair' },
+      { t: 'Request a role change', d: 'Roles tab: pick the user, the new role, and a reason. Tick Temporary for 24-hour break-glass access. The BMO Lead approves; no one changes their own role.', img: 'admin-3-roles', cap: 'Access Admin, roles' },
+      { t: 'Seat the board and review access', d: 'Board seating: one President per board. Access review: role, last sign-in, and denied attempts for every user.', img: 'admin-3-roles', cap: 'Access Admin, seating and review' }
+    ],
+    can: ['Open every tool, record, score, chat, and ledger entry','Run diagnostics and logged repairs','Request role changes and temporary access','Seat and vacate board members'],
+    cannot: ['Vote, override, or make any board decision (refused and logged)','Approve their own role changes','Change code or sign-in rules from ORBIT (GitHub and Cloudflare Access control those)'] },
+
   { id: 'bmo-lead', name: 'BMO Lead', short: 'Runs the boards', color: '#00b8de',
     title: 'Board administrator and governance authority',
     question: 'Is every board cycle on schedule, complete, and under control?',
@@ -13,29 +31,31 @@ const ROLES = [
       { t: 'Resolve score outliers in Scoring Audit', d: 'Heartburn cases are scores 1.5 points or more from the panel average. Choose Reconcile, Uphold, or Escalate, with a note.', img: 'bmo-3-audit', cap: 'Scoring Audit' },
       { t: 'Use the rollback only when needed', d: 'The Parity Breach Rollback Playbook belongs to you and the Board President. It walks four steps and asks you to type ROLLBACK to confirm.', img: 'bmo-3-audit', cap: 'Scoring Audit, rollback' }
     ],
-    can: ['Lock the population at 95% packet completeness or higher','Certify the Order of Merit','Run the rollback playbook','Edit milestones and KPI text','Export the audit package','Watch the queue and Panel Workspace (view only)'],
+    can: ['Approve or reject role change requests from the Admin','Lock the population at 95% packet completeness or higher','Certify the Order of Merit','Run the rollback playbook','Edit milestones and KPI text','Export the audit package','Watch the queue and Panel Workspace (view only)'],
     cannot: ['Score records (only the panel and the Board President vote)','Read panel chat','Open the Career Planner N-Box (talent data)','Override anything without a 20-character reason'] },
 
   { id: 'board-president', name: 'Board President', short: 'Presides and votes', color: '#a78bfa',
     title: 'Voting panel member with panel oversight',
     question: 'Is my panel scoring consistently, and where do we need to talk?',
-    lands: 'Candidate Queue',
-    tabs: ['Command Center','Candidate Queue','Panel Workspace','Scoring Audit','Cross Analytics','DELTA Ledger','Board Statistics & Roles'],
+    lands: 'Panel Oversight',
+    tabs: [],
     steps: [
-      { t: 'Check panel oversight', d: 'The purple panel above the queue shows each voter: records scored, average, and divergent scores (1.5 points or more from that record’s panel average).', img: 'pres-1-queue', cap: 'Candidate Queue, panel oversight' },
+      { t: 'Set what the panel sees from the AI', d: 'Panel Oversight opens first. For each AI item pick Before, During (after the member scores), After (Order of Merit certified), or Off, then Save. The setting applies to you too, and every change is logged.', img: 'pres-4-oversight', cap: 'Panel Oversight, AI visibility' },
+      { t: 'Check panel progress', d: 'Each voter: records scored, average, and divergent scores (1.5 points or more from that record’s panel average). The same table sits above your queue.', img: 'pres-1-queue', cap: 'Candidate Queue, panel oversight' },
       { t: 'Score like any panel member', d: 'You vote on every record. The AI fit value stays hidden until you score, same as the panel. Your score is kept under your own seat.', img: 'pres-2-workspace', cap: 'Panel Workspace' },
       { t: 'Call a re-vote when scores split', d: 'Call re-vote needs a reason. It flags the record, posts to its thread, and logs to DELTA. Panel members then revise with a reason.', img: 'pres-3-revote', cap: 'Panel Workspace, re-vote' },
       { t: 'Run the panel chat', d: 'Pin key messages and close a record’s thread when the discussion is done. Flagging the record reopens it.', img: 'panel-4-chat', cap: 'Panel Chat' },
+      { t: 'Send record issues to the Recorder', d: 'Missing or wrong data? Report it in Panel Oversight. It lands in the Recorder’s Risk, Issue & Change Log; source systems stay the record.', img: 'pres-4-oversight', cap: 'Panel Oversight, record issues' },
       { t: 'Resolve outliers in Scoring Audit', d: 'You own the audit: Reconcile, Uphold, or Escalate each heartburn case. Certify the Order of Merit with the BMO Lead.', img: 'bmo-3-audit', cap: 'Scoring Audit' }
     ],
-    can: ['Score every record (6.0 to 10.0)','See every panelist’s scores and divergence for your board','Call a re-vote','Pin messages and close threads','Certify the Order of Merit with the BMO Lead','Read the full SOI, commander’s comments, and appraisals'],
-    cannot: ['See the AI fit value before you score','Open the Career Planner N-Box (talent data)','Lock the population','Edit milestones or registers'] },
+    can: ['Set when panel members see each AI item','Report record issues to the Board Recorder','Score every record (6.0 to 10.0)','See every panelist’s scores and divergence for your board','Call a re-vote','Pin messages and close threads','Certify the Order of Merit with the BMO Lead','Read the full SOI, commander’s comments, and appraisals'],
+    cannot: ['See AI items earlier than your own setting allows','Edit source data (you request corrections)','Open the Career Planner N-Box (talent data)','Lock the population'] },
 
   { id: 'panelist', name: 'Panelist', short: 'Scores records', color: '#e0a000',
     title: 'Board evaluator, behind the talent firewall',
     question: 'Which record do I score next, and what does the evidence show?',
     lands: 'Candidate Queue',
-    tabs: ['Candidate Queue','Panel Workspace','DELTA Ledger'],
+    tabs: [],
     steps: [
       { t: 'Find your record in the queue', d: 'The queue holds only your board’s roster. “How this list was built” shows the roster rules and source. Search with <kbd>Ctrl</kbd>+<kbd>J</kbd>; LLM Fit reads “after you score” until you vote.', img: 'panel-1-queue', cap: 'Candidate Queue' },
       { t: 'Review the evidence in 8 lenses', d: 'Start with Overview: SOI, ROPs, ARMS freshness, and SURF. Switch lenses with <kbd>Alt</kbd>+<kbd>1</kbd> to <kbd>Alt</kbd>+<kbd>8</kbd>.', img: 'panel-2-workspace', cap: 'Panel Workspace' },
@@ -43,8 +63,8 @@ const ROLES = [
       { t: 'Discuss with the panel', d: 'Discuss opens the record’s thread; Panel channel reaches the whole board. Everything is logged to DELTA. Health information is blocked.', img: 'panel-4-chat', cap: 'Panel Chat' },
       { t: 'Score at the bottom dock', d: 'Keys <kbd>1</kbd> to <kbd>5</kbd> set 6.0 to 10.0. Hold <kbd>Shift</kbd> to add 0.5. Submit and Next saves and moves on. The model score, panel average, and AI fit appear only after you submit. Flag for Discussion also posts to the thread.', img: 'panel-2-workspace', cap: 'Scoring dock' }
     ],
-    can: ['Score records from 6.0 to 10.0','Read the full SOI, commander’s comments, and appraisals','Discuss in the record thread and panel channel','Flag a record for discussion','See your own DELTA entries'],
-    cannot: ['See the AI fit value before you score','See other panelists’ scores (Cross Analytics, Board Statistics, and others’ ledger entries are closed to you)','See any talent or loss data','Edit milestones or registers'] },
+    can: ['Score records from 6.0 to 10.0','See Board Statistics (scoring tab hidden until the Order of Merit is certified)','Read the full SOI, commander’s comments, and appraisals','Discuss in the record thread and panel channel','Flag a record for discussion','See your own DELTA entries'],
+    cannot: ['See AI items before the Board President’s setting allows','See other panelists’ scores (Cross Analytics, the scoring tab, and others’ ledger entries are closed to you)','See any talent or loss data','Edit milestones or registers'] },
 
   { id: 'board-recorder', name: 'Board Recorder', short: 'Keeps the record', color: '#14b87a',
     title: 'Board operations and audit lead',
@@ -102,6 +122,9 @@ const ROLES = [
     can: ['Use the N-Box, roster, and loss modeler','Log talent notes','View Match Lab for placement context'],
     cannot: ['See live board scoring or the candidate queue','See talent data for boards not yet finalized'] }
 ];
+
+// Every role's tabs come from the permission table when it is present
+if (PERM) ROLES.forEach(r => { r.tabs = PERM.tools.filter(t => t.access[r.name]).map(t => t.title); });
 
 const $ = s => document.querySelector(s);
 const picker = $('#picker'), panel = $('#panel');
@@ -166,12 +189,22 @@ picker.addEventListener('keydown', e => {
   const i = ROLES.indexOf(current), n = (i + (e.key === 'ArrowRight' ? 1 : ROLES.length - 1)) % ROLES.length;
   select(ROLES[n].id); document.getElementById(`tab-${ROLES[n].id}`).focus();
 });
-window.addEventListener('hashchange', () => select(location.hash.slice(1), true));
+window.addEventListener('hashchange', () => { if (location.hash === '#permissions') return; select(location.hash.slice(1), true); });
 
 // Tabs matrix
-$('#matrix').innerHTML = `<thead><tr><th>Tab</th>${ROLES.map(r => `<th><span class="dot" style="background:${r.color}"></span>${esc(r.name)}</th>`).join('')}</tr></thead>
+if (PERM) {
+  $('#matrix').innerHTML = `<thead><tr><th>Tool</th>${ROLES.map(r => `<th><span class="dot" style="background:${r.color}"></span>${esc(r.name)}</th>`).join('')}</tr></thead>
+<tbody>${PERM.tools.map(t => `<tr><td>${esc(t.title)}</td>${ROLES.map(r => {
+    const a = t.access[r.name];
+    if (!a) return '<td class="none">·</td>';
+    return `<td class="y lvl">${esc(a.level)}${r.lands === t.title ? '<span class="land">Lands</span>' : ''}${a.note ? `<small>${esc(a.note)}</small>` : ''}</td>`;
+  }).join('')}</tr>`).join('')}</tbody>`;
+  $('#purpose').innerHTML = `<thead><tr><th>Tool</th><th>What it is for</th></tr></thead><tbody>${PERM.tools.map(t => `<tr><td>${esc(t.title)}</td><td>${esc(t.purpose)}</td></tr>`).join('')}</tbody>`;
+} else {
+  $('#matrix').innerHTML = `<thead><tr><th>Tab</th>${ROLES.map(r => `<th><span class="dot" style="background:${r.color}"></span>${esc(r.name)}</th>`).join('')}</tr></thead>
 <tbody>${TABS.map(t => `<tr><td>${esc(t)}</td>${ROLES.map(r => r.tabs.includes(t)
   ? `<td class="y">Yes${r.lands === t ? '<span class="land">Lands</span>' : ''}</td>` : `<td class="n">No</td>`).join('')}</tr>`).join('')}</tbody>`;
+}
 
 // Lightbox
 const lb = $('#lightbox');
@@ -179,4 +212,9 @@ function openLightbox(src, cap) { $('#lb-img').src = src; $('#lb-img').alt = cap
 $('#lb-close').addEventListener('click', () => lb.close());
 lb.addEventListener('click', e => { if (e.target === lb) lb.close(); });
 
-select(location.hash.slice(1), true);
+if (location.hash === '#permissions') {
+  select('', true);
+  document.getElementById('permissions').scrollIntoView();
+} else {
+  select(location.hash.slice(1), true);
+}

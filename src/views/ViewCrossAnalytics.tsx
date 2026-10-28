@@ -3,7 +3,7 @@ import { useOrbit } from '../state/context';
 import { computePanelistCalibration, computeZScoreNormalizedRankings, PanelistStats } from '../lib/stats';
 import { PANELIST_PROFILES } from '../data/seed';
 import { RequireRole } from '../auth/RequireRole';
-import { fitVisible } from '../lib/panel';
+import { fitVisible, hiddenNote } from '../lib/panel';
 import {
   RadarChart,
   PolarGrid,
@@ -228,7 +228,7 @@ const ViewCrossAnalyticsContent: React.FC = () => {
                   <td className="py-1.5 px-2 font-semibold">LLM Fit Score</td>
                   {comparedCandidates.map(c => (
                     <td key={c.id} className="py-1.5 px-2 font-bold text-purple-300">
-                      {fitVisible(c, state) ? `${c.llmFitScore}%` : 'after you score'}
+                      {fitVisible(c, state) ? `${c.llmFitScore}%` : hiddenNote('llmFit', c, state)}
                     </td>
                   ))}
                 </tr>

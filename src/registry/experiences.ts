@@ -5,6 +5,7 @@
  */
 
 import { ExperienceDef } from '../types';
+import { rolesFor } from '../auth/permissions';
 
 export const EXPERIENCES: ExperienceDef[] = [
   // Live Experiences
@@ -14,11 +15,23 @@ export const EXPERIENCES: ExperienceDef[] = [
     viewId: 'VIEW-CommandCenter',
     title: 'Command Center',
     group: 'Leadership',
-    roles: ['BMO Lead', 'Board President', 'Board Recorder', 'Assignments Officer', 'HQ Strategic Viewer', 'CFM / Career Planner'],
+    roles: rolesFor('VIEW-CommandCenter'),
     question: 'How is the entire board portfolio performing across phases, milestones, and risks?',
     metricIds: ['M-501', 'M-502', 'M-504', 'K-01', 'K-02', 'K-03', 'K-05', 'K-10'],
     status: 'Live',
     demoStep: 'Review executive KPI cards, 8-phase workflow bar, and drill down to candidate records.'
+  },
+  {
+    id: 'EXP-021',
+    ideaId: null,
+    viewId: 'VIEW-PanelOversight',
+    title: 'Panel Oversight',
+    group: 'Board',
+    roles: rolesFor('VIEW-PanelOversight'),
+    question: 'Is the panel scoring consistently, and what may panel members see from the AI?',
+    metricIds: [],
+    status: 'Live',
+    demoStep: 'Set when each AI item is visible to panel members, watch progress and divergence, and report record issues.'
   },
   {
     id: 'EXP-002',
@@ -26,7 +39,7 @@ export const EXPERIENCES: ExperienceDef[] = [
     viewId: 'VIEW-CandidateQueue',
     title: 'Candidate Queue',
     group: 'Board',
-    roles: ['Panelist', 'Board President', 'Board Recorder', 'BMO Lead'],
+    roles: rolesFor('VIEW-CandidateQueue'),
     question: 'Which candidates in the active cycle are pending, scored, or flagged for review?',
     metricIds: ['M-401', 'M-402', 'M-403', 'M-204'],
     status: 'Live',
@@ -38,7 +51,7 @@ export const EXPERIENCES: ExperienceDef[] = [
     viewId: 'VIEW-PanelReview',
     title: 'Panel Workspace',
     group: 'Board',
-    roles: ['Panelist', 'Board President', 'Board Recorder', 'BMO Lead'],
+    roles: rolesFor('VIEW-PanelReview'),
     question: 'What is the full evidence package for this candidate across all eight analytical lenses?',
     metricIds: ['M-406', 'M-301', 'M-302', 'M-303', 'M-304', 'M-404', 'M-405'],
     status: 'Live',
@@ -50,7 +63,7 @@ export const EXPERIENCES: ExperienceDef[] = [
     viewId: 'VIEW-HeliosCommand',
     title: 'HELIOS Command',
     group: 'Leadership',
-    roles: ['BMO Lead', 'Board Recorder', 'HQ Strategic Viewer'],
+    roles: rolesFor('VIEW-HeliosCommand'),
     question: 'Are ingestion pipelines flowing, authoritative sources fresh, and cycles staffed to lock?',
     metricIds: ['M-101', 'M-102', 'M-103', 'M-104', 'M-105', 'M-106', 'M-201', 'M-202', 'M-203', 'M-204', 'M-205', 'M-301', 'M-302', 'M-303', 'M-304', 'M-501', 'M-502', 'M-503', 'M-504', 'M-505'],
     status: 'Live',
@@ -62,7 +75,7 @@ export const EXPERIENCES: ExperienceDef[] = [
     viewId: 'VIEW-ScoringAudit',
     title: 'Scoring Audit',
     group: 'Audit',
-    roles: ['Board President', 'BMO Lead', 'Board Recorder'],
+    roles: rolesFor('VIEW-ScoringAudit'),
     question: 'Where do panel evaluators diverge severely (>1.5 pts) and how are heartburn cases resolved?',
     metricIds: ['M-401', 'M-402', 'M-403'],
     status: 'Live',
@@ -74,7 +87,7 @@ export const EXPERIENCES: ExperienceDef[] = [
     viewId: 'VIEW-MatchLab',
     title: 'Match Lab',
     group: 'Assignments',
-    roles: ['Assignments Officer', 'BMO Lead', 'CFM / Career Planner'],
+    roles: rolesFor('VIEW-MatchLab'),
     question: 'Which candidate best fits each critical billet and what happens if weights or availability change?',
     metricIds: ['M-504'],
     status: 'Live',
@@ -86,7 +99,7 @@ export const EXPERIENCES: ExperienceDef[] = [
     viewId: 'VIEW-CrossAnalytics',
     title: 'Cross Analytics',
     group: 'Leadership',
-    roles: ['BMO Lead', 'Board President', 'Board Recorder', 'HQ Strategic Viewer'],
+    roles: rolesFor('VIEW-CrossAnalytics'),
     question: 'How does candidate talent distribute across radar attributes, 2D constellations, and endorser scale?',
     metricIds: ['M-404', 'M-405'],
     status: 'Live',
@@ -98,7 +111,7 @@ export const EXPERIENCES: ExperienceDef[] = [
     viewId: 'VIEW-CareerPlanner',
     title: 'Career Planner N-Box',
     group: 'Talent',
-    roles: ['CFM / Career Planner', 'Assignments Officer'], // Firewalled from Panelist!
+    roles: rolesFor('VIEW-CareerPlanner'),
     question: 'Who is key talent, who might leave, and what is the operational impact if they do?',
     metricIds: ['M-601', 'M-602', 'M-603', 'M-604', 'M-605'],
     status: 'Live',
@@ -110,7 +123,7 @@ export const EXPERIENCES: ExperienceDef[] = [
     viewId: 'VIEW-OpsRegisters',
     title: 'Operations Registers',
     group: 'Leadership',
-    roles: ['Board Recorder', 'BMO Lead', 'HQ Strategic Viewer'],
+    roles: rolesFor('VIEW-OpsRegisters'),
     question: 'What are the planned vs actual milestone timelines, open risks, and phase 8 AAR items?',
     metricIds: ['K-01', 'K-10', 'K-11'],
     status: 'Live',
@@ -122,7 +135,7 @@ export const EXPERIENCES: ExperienceDef[] = [
     viewId: 'VIEW-DeltaLedger',
     title: 'DELTA Ledger',
     group: 'Audit',
-    roles: ['Panelist', 'Board President', 'Board Recorder', 'BMO Lead', 'Assignments Officer', 'HQ Strategic Viewer', 'CFM / Career Planner'],
+    roles: rolesFor('VIEW-DeltaLedger'),
     question: 'Is the cryptographic chain of human and algorithmic decisions intact and auditable?',
     metricIds: [],
     status: 'Live',
@@ -134,11 +147,24 @@ export const EXPERIENCES: ExperienceDef[] = [
     viewId: 'VIEW-BoardDetail',
     title: 'Board Statistics & Roles',
     group: 'Board',
-    roles: ['BMO Lead', 'Board President', 'Board Recorder', 'Assignments Officer', 'HQ Strategic Viewer', 'CFM / Career Planner'],
+    roles: rolesFor('VIEW-BoardDetail'),
     question: 'What are the individual board statistics, stage-gate health, scoring velocity, and role permission boundaries?',
     metricIds: ['M-501', 'M-504', 'M-401', 'M-402', 'M-403'],
     status: 'Live',
     demoStep: 'Drill down into individual board statistics, review role governance matrix, and verify Rule 5 firewalls.'
+  },
+
+  {
+    id: 'EXP-020',
+    ideaId: null,
+    viewId: 'VIEW-AccessAdmin',
+    title: 'Access Admin',
+    group: 'Audit',
+    roles: rolesFor('VIEW-AccessAdmin'),
+    question: 'Who has which role, who sits on which board, and is the system healthy?',
+    metricIds: [],
+    status: 'Live',
+    demoStep: 'Request a role change, approve it as BMO Lead, review access, and run diagnostics.'
   },
 
   // Roadmap Experiences (Proposed / Parked - shown only in Experience Catalog Drawer)

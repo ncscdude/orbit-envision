@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useOrbit } from '../state/context';
+import { useNav } from '../state/useNav';
 import { MetricPopover } from '../components/MetricPopover';
 import {
   Calendar,
@@ -18,6 +19,7 @@ import { RequireRole } from '../auth/RequireRole';
 
 const ViewCommandCenterContent: React.FC = () => {
   const { state, dispatch } = useOrbit();
+  const { may, go } = useNav();
   const [selectedPhase, setSelectedPhase] = useState<number | null>(null);
   const [kpiSearch, setKpiSearch] = useState('');
   const [phaseFilter, setPhaseFilter] = useState('All');
@@ -118,7 +120,7 @@ const ViewCommandCenterContent: React.FC = () => {
     } else if (drillFilter === 'Scored') {
       dispatch({ type: 'SET_FILTER_STATUS', status: 'Scored' });
     }
-    dispatch({ type: 'SET_VIEW', viewId: 'VIEW-CandidateQueue' });
+    go('VIEW-CandidateQueue');
   };
 
   return (
@@ -153,7 +155,7 @@ const ViewCommandCenterContent: React.FC = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Active Boards */}
         <div
-          onClick={() => dispatch({ type: 'SET_VIEW', viewId: 'VIEW-BoardDetail' })}
+          onClick={() => go('VIEW-BoardDetail')}
           className="bg-[#0a1020] border border-[#1e2d45] border-t-4 border-t-[#2E86AB] rounded-md p-4 hover:border-cyan-500/50 cursor-pointer transition-all hover:bg-[#0f172a]"
           title="Drill down to individual board statistics, stage-gates, and role permissions"
         >
@@ -170,7 +172,7 @@ const ViewCommandCenterContent: React.FC = () => {
 
         {/* Schedule On Track */}
         <div
-          onClick={() => dispatch({ type: 'SET_VIEW', viewId: 'VIEW-OpsRegisters' })}
+          onClick={() => go('VIEW-OpsRegisters')}
           className="bg-[#0a1020] border border-[#1e2d45] border-t-4 border-t-[#00ff88] rounded-md p-4 hover:border-emerald-500/50 cursor-pointer transition-all hover:bg-[#0f172a]"
         >
           <div className="flex items-center justify-between text-xs text-slate-400 font-medium uppercase tracking-wider">
@@ -202,7 +204,7 @@ const ViewCommandCenterContent: React.FC = () => {
 
         {/* Items Needing Action */}
         <div
-          onClick={() => dispatch({ type: 'SET_VIEW', viewId: 'VIEW-OpsRegisters' })}
+          onClick={() => go('VIEW-OpsRegisters')}
           className="bg-[#0a1020] border border-[#1e2d45] border-t-4 border-t-[#ffb800] rounded-md p-4 hover:border-amber-500/50 cursor-pointer transition-all hover:bg-[#0f172a]"
         >
           <div className="flex items-center justify-between text-xs text-slate-400 font-medium uppercase tracking-wider">
@@ -315,12 +317,14 @@ const ViewCommandCenterContent: React.FC = () => {
               <span className="font-mono text-xs font-semibold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5" /> Schedule & Milestones
               </span>
+              {may('VIEW-OpsRegisters') && (
               <button
-                onClick={() => dispatch({ type: 'SET_VIEW', viewId: 'VIEW-OpsRegisters' })}
+                onClick={() => go('VIEW-OpsRegisters')}
                 className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-medium"
               >
                 Open Log <ArrowRight className="w-3 h-3" />
               </button>
+              )}
             </div>
             <p className="text-xs text-slate-300 leading-relaxed mb-3">
               Next milestones by cycle with planned and actual dates, owner, and status.
@@ -352,12 +356,14 @@ const ViewCommandCenterContent: React.FC = () => {
               <span className="font-mono text-xs font-semibold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
                 <AlertTriangle className="w-3.5 h-3.5" /> Risk & Issue Log
               </span>
+              {may('VIEW-OpsRegisters') && (
               <button
-                onClick={() => dispatch({ type: 'SET_VIEW', viewId: 'VIEW-OpsRegisters' })}
+                onClick={() => go('VIEW-OpsRegisters')}
                 className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-medium"
               >
                 Open Log <ArrowRight className="w-3 h-3" />
               </button>
+              )}
             </div>
             <p className="text-xs text-slate-300 leading-relaxed mb-3">
               Open risks and issues with suspense date, owner, and escalation flag.
@@ -403,7 +409,7 @@ const ViewCommandCenterContent: React.FC = () => {
             <button
               key={reg.name}
               type="button"
-              onClick={() => dispatch({ type: 'SET_VIEW', viewId: 'VIEW-OpsRegisters' })}
+              onClick={() => go('VIEW-OpsRegisters')}
               className="p-2.5 bg-[#05080f] hover:bg-[#1e2d45] border border-[#1e2d45] hover:border-cyan-500/60 rounded text-left transition-colors"
             >
               <div className="font-semibold text-white text-xs">{reg.name}</div>
@@ -753,12 +759,14 @@ const ViewCommandCenterContent: React.FC = () => {
           <span className="font-mono text-xs font-semibold text-cyan-400 uppercase tracking-wider flex items-center gap-2">
             <Cpu className="w-3.5 h-3.5" /> Pipelines and Automated Agent Gateway (HELIOS Summary)
           </span>
+          {may('VIEW-HeliosCommand') && (
           <button
-            onClick={() => dispatch({ type: 'SET_VIEW', viewId: 'VIEW-HeliosCommand' })}
+            onClick={() => go('VIEW-HeliosCommand')}
             className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
           >
             Open HELIOS Command <ArrowRight className="w-3 h-3" />
           </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
@@ -820,7 +828,7 @@ const ViewCommandCenterContent: React.FC = () => {
                 key={b.id}
                 onClick={() => {
                   dispatch({ type: 'SET_BOARD', boardId: b.id });
-                  dispatch({ type: 'SET_VIEW', viewId: 'VIEW-BoardDetail' });
+                  go('VIEW-BoardDetail');
                 }}
                 className={`p-3 bg-[#05080f] border rounded cursor-pointer transition-all hover:border-cyan-500/70 hover:bg-[#0f172a] ${
                   isDelayed

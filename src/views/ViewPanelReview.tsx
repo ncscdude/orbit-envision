@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useOrbit } from '../state/context';
+import { useNav } from '../state/useNav';
 import { Candidate } from '../types';
 import { AiBadge } from '../components/AiBadge';
 import { cosineSimilarity } from '../lib/stats';
 import { RequireRole } from '../auth/RequireRole';
-import { canReadChat, canScore, fitVisible, getMyScore } from '../lib/panel';
+import { aiVisible, canReadChat, canScore, getMyScore, hiddenNote } from '../lib/panel';
 import { PanelChat } from '../components/PanelChat';
 import { FullTextReader, ReaderTab } from '../components/FullTextReader';
 import {
@@ -30,6 +31,7 @@ import {
 
 const ViewPanelReviewContent: React.FC = () => {
   const { state, dispatch } = useOrbit();
+  const { may, go } = useNav();
   const [activeLens, setActiveLens] = useState<number>(1);
   const [selectedScore, setSelectedScore] = useState<number | null>(null);
   const [flagModalOpen, setFlagModalOpen] = useState(false);
@@ -135,7 +137,17 @@ const ViewPanelReviewContent: React.FC = () => {
 
   // Anti-anchoring rule: modelScore and panelAvg hidden until human submits!
   const hasSubmitted = myScore !== null;
-  const showFit = fitVisible(candidate, state);
+  const showFit = aiVisible('llmFit', candidate, state);
+  const showModel = aiVisible('modelScore', candidate, state);
+  const showScribe = aiVisible('scribe', candidate, state);
+  const showSimilar = aiVisible('similar', candidate, state);
+  const showPanelAvg = aiVisible('panelAvg', candidate, state);
+  const showEndorser = aiVisible('endorser', candidate, state);
+  const HiddenNote: React.FC<{ field: Parameters<typeof hiddenNote>[0]; what: string }> = ({ field, what }) => (
+    <p className="text-xs text-slate-400 italic flex items-center gap-1.5 bg-[#05080f] border border-[#1e2d45] rounded p-3">
+      <EyeOff className="w-3.5 h-3.5" /> {what} {hiddenNote(field, candidate, state)}.
+    </p>
+  );
   const panelScores = candidate.scores.map(s => s.value);
   const panelAvg = panelScores.length > 0 ? (panelScores.reduce((a, b) => a + b, 0) / panelScores.length).toFixed(1) : '8.1';
   const modelScore = (candidate.mScore / 10).toFixed(1);
@@ -481,17 +493,14 @@ const ViewPanelReviewContent: React.FC = () => {
                   <span>Algorithmic Fit & Feature Weight Drivers</span>
                   <AiBadge />
                 </h3>
-                {showFit ? (
-                  <span className="font-mono text-purple-300 font-bold text-sm">
-                    LLM Fit: {candidate.llmFitScore}% · mScore: {candidate.mScore}
-                  </span>
-                ) : (
-                  <span className="font-mono text-slate-400 text-xs flex items-center gap-1">
-                    <EyeOff className="w-3.5 h-3.5" /> Fit value shows after you score
-                  </span>
-                )}
+                <span className="font-mono text-purple-300 font-bold text-sm">
+                  {showFit ? `LLM Fit: ${candidate.llmFitScore}%` : 'LLM Fit: hidden'}
+                  {showModel ? ` · mScore: ${candidate.mScore}` : ''}
+                </span>
               </div>
-              {showFit && (
+              {!showFit && <HiddenNote field="llmFit" what="The AI fit value" />}
+              {!showModel && <HiddenNote field="modelScore" what="The model score and drivers" />}
+              {showModel && (
               <div className="space-y-2">
                 {candidate.featureDrivers.map((fd, i) => (
                   <div key={i} className="p-2.5 bg-[#05080f] border border-[#1e2d45] rounded text-xs flex justify-between">
@@ -528,6 +537,7 @@ const ViewPanelReviewContent: React.FC = () => {
               </div>
 
               {/* IDEA-004: Endorser & Stratification Context beside candidate */}
+              {showEndorser ? (
               <div className="bg-[#0a1020] border border-cyan-500/40 rounded-md p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-xs font-semibold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -572,6 +582,9 @@ const ViewPanelReviewContent: React.FC = () => {
                   </div>
                 </div>
               </div>
+              ) : (
+                <HiddenNote field="endorser" what="Endorser insights" />
+              )}
             </div>
           )}
 
@@ -599,6 +612,7 @@ const ViewPanelReviewContent: React.FC = () => {
           )}
 
           {/* Supporting Lower Cards: Similar Candidates & Possible Fits */}
+          {showSimilar ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
             {/* Similar Candidates */}
             <div className="bg-[#0a1020] border border-[#1e2d45] rounded-md p-3.5 space-y-2">
@@ -629,12 +643,14 @@ const ViewPanelReviewContent: React.FC = () => {
             <div className="bg-[#0a1020] border border-[#1e2d45] rounded-md p-3.5 space-y-2">
               <span className="font-semibold text-white text-xs flex items-center justify-between">
                 <span>Top 3 Possible Billet Matches</span>
+                {may('VIEW-MatchLab') && (
                 <button
-                  onClick={() => dispatch({ type: 'SET_VIEW', viewId: 'VIEW-MatchLab' })}
+                  onClick={() => go('VIEW-MatchLab')}
                   className="text-[10px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-mono"
                 >
                   Match Lab <ExternalLink className="w-2.5 h-2.5" />
                 </button>
+                )}
               </span>
               <div className="space-y-1.5">
                 {possibleFits.map(({ billet: b, cos }) => (
@@ -649,6 +665,9 @@ const ViewPanelReviewContent: React.FC = () => {
               </div>
             </div>
           </div>
+          ) : (
+            <HiddenNote field="similar" what="Similar records and possible billet fits" />
+          )}
         </div>
 
         {/* Right Column: AI LLM Scribe Drawer (Req 145) */}
@@ -664,6 +683,8 @@ const ViewPanelReviewContent: React.FC = () => {
               </span>
             </div>
 
+            {showScribe ? (
+              <>
             {/* 3-Paragraph Synthesis */}
             <div className="space-y-2 text-xs text-slate-300 leading-relaxed font-sans">
               {candidate.chatSnapshot.summary.map((para, idx) => {
@@ -713,9 +734,14 @@ const ViewPanelReviewContent: React.FC = () => {
                 ))}
               </ul>
             </div>
+              </>
+            ) : (
+              <HiddenNote field="scribe" what="The Scribe summary" />
+            )}
           </div>
 
           {/* Scribe Human Sign-Off Action */}
+          {showScribe && (
           <div className="pt-3 border-t border-[#1e2d45] space-y-2">
             {candidate.chatSnapshot.signedOffBy ? (
               <div className="p-2.5 bg-emerald-950/40 border border-emerald-800 rounded text-xs space-y-1.5">
@@ -748,6 +774,7 @@ const ViewPanelReviewContent: React.FC = () => {
               Requires human click; stamps actor into DELTA ledger.
             </p>
           </div>
+          )}
         </div>
       </div>
 
@@ -838,12 +865,12 @@ const ViewPanelReviewContent: React.FC = () => {
 
           {/* Anti-Anchoring Reveal or Hidden State */}
           <div className="flex items-center gap-3 text-[11px] font-mono">
-            {hasSubmitted || !voter ? (
+            {showModel || showPanelAvg ? (
               <div className="flex items-center gap-2 bg-[#05080f] px-2.5 py-1 rounded border border-cyan-800/80">
-                <span className="text-slate-400">Model: <strong className="text-purple-300">{modelScore}</strong></span>
-                <span className="text-slate-600">|</span>
-                <span className="text-slate-400">Panel Avg: <strong className="text-cyan-300">{panelAvg}</strong></span>
-                {myScore !== null && (
+                {showModel && <span className="text-slate-400">Model: <strong className="text-purple-300">{modelScore}</strong></span>}
+                {showModel && showPanelAvg && <span className="text-slate-600">|</span>}
+                {showPanelAvg && <span className="text-slate-400">Panel Avg: <strong className="text-cyan-300">{panelAvg}</strong></span>}
+                {showPanelAvg && myScore !== null && (
                   <>
                     <span className="text-slate-600">|</span>
                     <span className="text-slate-400">Delta: <strong className="text-emerald-400">{(myScore - Number(panelAvg)).toFixed(1)}</strong></span>
@@ -852,7 +879,7 @@ const ViewPanelReviewContent: React.FC = () => {
               </div>
             ) : (
               <span className="text-slate-500 italic bg-[#05080f] px-2 py-1 rounded border border-[#1e2d45]">
-                🔒 Model & Panel averages hidden until submission
+                🔒 Model & Panel averages {hiddenNote('panelAvg', candidate, state)}
               </span>
             )}
           </div>

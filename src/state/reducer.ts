@@ -3,16 +3,19 @@
  * Persists to localStorage with try/catch; all meaningful actions log to DELTA
  */
 
-import { AppState, Role, DeltaEntry, MatchPair, MatchScenarioWeights, Milestone, Risk, ChatMessage } from '../types';
+import { AppState, Role, DeltaEntry, MatchPair, MatchScenarioWeights, Milestone, Risk, ChatMessage, AiVisibility, RoleRequest } from '../types';
 import type { Identity } from '../auth/identity';
 import { ALL_CANDIDATES_SEED, BILLETS_SEED, BOARDS_SEED, generateMilestones, RISKS_SEED, SOURCE_PIPELINES_SEED, ENDORSERS_SEED, STAFF_SLOTS_SEED, COMMANDER_ACTIONS_SEED, IMPROVEMENT_ACTIONS_SEED, SAMPLE_CANONICAL_FILES } from '../data/seed';
 import { INITIAL_KPIS } from '../data/kpis';
 import { createDeltaEntry } from './delta';
 import { DEFAULT_WEIGHTS, generateAllCandidateBilletScores, computeSensitivityHolds, toScoreMatrix } from '../lib/match';
 import { runGreedyMatching } from '../lib/stable';
-import { canScore, canPostChat, scoreKeyFor, getMyScore, containsPossiblePhi } from '../lib/panel';
+import { canScore, canPostChat, scoreKeyFor, getMyScore, containsPossiblePhi, DEFAULT_AI_VISIBILITY } from '../lib/panel';
+import { RepairKind } from '../lib/diagnostics';
+import { DEV_USERS_SEED } from '../data/seed';
+import { lookupRole } from '../auth/roleMap';
 
-export const STORAGE_KEY = 'orbit_demo_state_v5';
+export const STORAGE_KEY = 'orbit_demo_state_v6';
 
 const CHAT_SEED: ChatMessage[] = [
   {
@@ -41,7 +44,10 @@ const CHAT_SEED: ChatMessage[] = [
 
 export function getDefaultLandingForRole(role: Role): string {
   switch (role) {
+    case 'ORBIT Admin':
+      return 'VIEW-AccessAdmin';
     case 'Board President':
+      return 'VIEW-PanelOversight';
     case 'Panelist':
       return 'VIEW-CandidateQueue';
     case 'Board Recorder':
@@ -87,7 +93,16 @@ function applyRole(state: AppState, role: Role, actorName: string, userId: strin
   };
 }
 
+/** Role after approved Access Admin changes; expired temporary access falls back to the role table. */
+export function effectiveRole(state: Pick<AppState, 'roleAssignments'>, userId: string, tableRole: Role | null, now: Date = new Date()): Role | null {
+  const a = state.roleAssignments?.[userId];
+  if (!a) return tableRole;
+  if (a.expiresAt && new Date(a.expiresAt) <= now) return tableRole;
+  return a.role;
+}
+
 function applyIdentity(state: AppState, identity: Identity | null): AppState {
+  if (identity) identity = { ...identity, role: effectiveRole(state, identity.userId, identity.role) };
   if (identity && identity.role) {
     return applyRole(state, identity.role, identity.displayName, identity.userId);
   }
@@ -180,6 +195,10 @@ export function createInitialState(): AppState {
     chat: CHAT_SEED,
     closedThreads: [],
 
+    aiVisibility: { 'BRD-001': { ...DEFAULT_AI_VISIBILITY } },
+    roleRequests: [],
+    roleAssignments: {},
+
     activeProposalMode: 'Official',
     officialMatches,
     sandboxMatches: [...officialMatches],
@@ -253,6 +272,13 @@ export type Action =
   | { type: 'CLOSE_THREAD'; candidateId: string }
   | { type: 'CALL_REVOTE'; candidateId: string; reason: string }
   | { type: 'LOG_RECORD_OPEN'; candidateId: string; document: string }
+  | { type: 'SET_AI_VISIBILITY'; boardId: string; settings: AiVisibility }
+  | { type: 'REPORT_RECORD_ISSUE'; candidateId: string; issue: string }
+  | { type: 'REQUEST_ROLE_CHANGE'; userId: string; toRole: Role | null; reason: string; temporary: boolean }
+  | { type: 'DECIDE_ROLE_REQUEST'; requestId: string; approve: boolean }
+  | { type: 'SEAT_MEMBER'; boardId: string; slotIndex: number; name: string | null }
+  | { type: 'ADMIN_REPAIR'; repair: RepairKind; targetId?: string; reason: string }
+  | { type: 'ADMIN_INJECT_GLITCH' }
   | { type: 'RESET_DEMO' };
 
 function nextMessageId(chat: ChatMessage[]): string {
@@ -273,7 +299,30 @@ function systemMessage(state: AppState, channel: string, text: string): ChatMess
   };
 }
 
+// The ORBIT Admin sees everything and may diagnose and repair, but never votes or makes a
+// board decision. These actions are refused for the Admin and the attempt is logged.
+const ADMIN_NO_DECISION: ReadonlyArray<Action['type']> = [
+  'SUBMIT_SCORE', 'REVISE_SCORE', 'TOGGLE_FLAG', 'SIGN_OFF_SNAPSHOT', 'REVOKE_SNAPSHOT', 'RANDOM_SHUFFLE',
+  'APPROVE_MATCH', 'OVERRIDE_MATCH', 'UNMATCH_PAIR', 'PROMOTE_SCENARIO', 'EXPORT_PSDM',
+  'ADJUDICATE_HEARTBURN', 'ROLLBACK_PLAYBOOK', 'LOCK_POPULATION', 'CERTIFY_OOM', 'CLEAR_BOARD_EXCEPTIONS',
+  'UPDATE_MILESTONE', 'UPDATE_RISK', 'EDIT_KPI', 'ADD_IMPROVEMENT_ACTION', 'UPDATE_COMMANDER_ACTION',
+  'SAVE_TALENT_NOTE', 'POST_CHAT', 'PIN_MESSAGE', 'CLOSE_THREAD', 'CALL_REVOTE', 'SET_AI_VISIBILITY',
+  'REPORT_RECORD_ISSUE', 'ROUTE_FILE', 'COMMIT_ROUTING', 'TAMPER_CHAIN', 'DECIDE_ROLE_REQUEST'
+];
+
 export function appReducer(state: AppState, action: Action): AppState {
+  if (state.currentRole === 'ORBIT Admin' && ADMIN_NO_DECISION.includes(action.type)) {
+    const delta = createDeltaEntry(
+      state.ledger,
+      state.actorName,
+      state.currentRole,
+      action.type,
+      'ACCESS_DENIED',
+      `Admin cannot take board decision ${action.type}; the Admin diagnoses and repairs only`,
+      { reason: 'ADMIN_NO_DECISION', action: action.type }
+    );
+    return { ...state, ledger: [...state.ledger, delta] };
+  }
   switch (action.type) {
     case 'SET_ROLE': {
       const actorName = action.actorName || `${action.role} User`;
@@ -1162,6 +1211,253 @@ export function appReducer(state: AppState, action: Action): AppState {
         { candidateId: action.candidateId, document: action.document }
       );
       return { ...state, ledger: [...state.ledger, delta] };
+    }
+
+    case 'SET_AI_VISIBILITY': {
+      if (state.currentRole !== 'Board President') return state;
+      const before = state.aiVisibility[action.boardId] ?? DEFAULT_AI_VISIBILITY;
+      const changed = (Object.keys(action.settings) as (keyof AiVisibility)[]).filter(k => before[k] !== action.settings[k]);
+      if (changed.length === 0) return state;
+      const delta = createDeltaEntry(
+        state.ledger,
+        state.actorName,
+        state.currentRole,
+        action.boardId,
+        'AI_VISIBILITY_CHANGE',
+        `AI visibility for panel members changed: ${changed.map(k => `${k} ${before[k]} to ${action.settings[k]}`).join('; ')}`,
+        { boardId: action.boardId, before, after: action.settings }
+      );
+      return {
+        ...state,
+        aiVisibility: { ...state.aiVisibility, [action.boardId]: { ...action.settings } },
+        ledger: [...state.ledger, delta]
+      };
+    }
+
+    case 'REPORT_RECORD_ISSUE': {
+      if (state.currentRole !== 'Board President') return state;
+      const cand = state.candidates.find(c => c.id === action.candidateId);
+      const issue = action.issue.trim();
+      if (!cand || issue.length < 10) return state;
+      const today = new Date().toISOString().slice(0, 10);
+      const suspense = new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10);
+      const risk: Risk = {
+        id: `RSK-${(state.risks.length + 1).toString().padStart(3, '0')}`,
+        boardId: cand.boardId,
+        type: 'Issue',
+        title: `Record issue on ${cand.id}: ${issue}`,
+        owner: 'Board Recorder',
+        opened: today,
+        suspense,
+        mitigation: 'Recorder checks the source system; BMO Lead retries the data load in HELIOS Command if needed.',
+        escalate: false,
+        status: 'Open'
+      };
+      const delta = createDeltaEntry(
+        state.ledger,
+        state.actorName,
+        state.currentRole,
+        cand.id,
+        'RECORD_ISSUE',
+        `Record issue reported on ${cand.name}: ${issue}. Logged as ${risk.id} for the Board Recorder.`,
+        { candidateId: cand.id, riskId: risk.id, issue }
+      );
+      return { ...state, risks: [...state.risks, risk], ledger: [...state.ledger, delta] };
+    }
+
+    case 'REQUEST_ROLE_CHANGE': {
+      if (state.currentRole !== 'ORBIT Admin') return state;
+      const reason = action.reason.trim();
+      const user = DEV_USERS_SEED.find(u => u.userId === action.userId);
+      if (!user || reason.length < 20) return state;
+      if (action.userId === state.userId) return state; // no one changes their own role
+      const req: RoleRequest = {
+        id: `RRQ-${(state.roleRequests.length + 1).toString().padStart(3, '0')}`,
+        userId: user.userId,
+        displayName: user.displayName,
+        fromRole: effectiveRole(state, user.userId, lookupRole(user.userId)),
+        toRole: action.toRole,
+        reason,
+        requestedBy: state.actorName,
+        requestedAt: new Date().toISOString(),
+        temporary: action.temporary,
+        status: 'Pending'
+      };
+      const delta = createDeltaEntry(
+        state.ledger,
+        state.actorName,
+        state.currentRole,
+        user.userId,
+        'ROLE_REQUEST',
+        `${req.id}: ${req.temporary ? 'temporary ' : ''}role change for ${user.displayName} from ${req.fromRole ?? 'none'} to ${req.toRole ?? 'no access'}. Awaiting BMO Lead approval.`,
+        { requestId: req.id, userId: user.userId, fromRole: req.fromRole, toRole: req.toRole, temporary: req.temporary, reason }
+      );
+      return { ...state, roleRequests: [...state.roleRequests, req], ledger: [...state.ledger, delta] };
+    }
+
+    case 'DECIDE_ROLE_REQUEST': {
+      if (state.currentRole !== 'BMO Lead') return state;
+      const req = state.roleRequests.find(r => r.id === action.requestId);
+      if (!req || req.status !== 'Pending' || req.userId === state.userId) return state;
+      const now = new Date();
+      const expiresAt = action.approve && req.temporary ? new Date(now.getTime() + 24 * 3600000).toISOString() : undefined;
+      const decided: RoleRequest = {
+        ...req,
+        status: action.approve ? 'Approved' : 'Rejected',
+        decidedBy: state.actorName,
+        decidedAt: now.toISOString(),
+        expiresAt
+      };
+      const delta = createDeltaEntry(
+        state.ledger,
+        state.actorName,
+        state.currentRole,
+        req.userId,
+        'ROLE_DECISION',
+        `${req.id} ${action.approve ? 'approved' : 'rejected'} by ${state.actorName}${expiresAt ? `; expires ${expiresAt.slice(0, 16)}Z` : ''}`,
+        { requestId: req.id, approve: action.approve, expiresAt: expiresAt ?? null }
+      );
+      return {
+        ...state,
+        roleRequests: state.roleRequests.map(r => (r.id === req.id ? decided : r)),
+        roleAssignments: action.approve
+          ? { ...state.roleAssignments, [req.userId]: { role: req.toRole, expiresAt: expiresAt ?? null } }
+          : state.roleAssignments,
+        ledger: [...state.ledger, delta]
+      };
+    }
+
+    case 'SEAT_MEMBER': {
+      if (state.currentRole !== 'ORBIT Admin') return state;
+      const slots = state.staffSlots.filter(s => s.boardId === action.boardId);
+      const slot = slots[action.slotIndex];
+      if (!slot) return state;
+      const name = action.name?.trim() || null;
+      if (name && slot.role === 'Board President' && slots.some((s, i) => i !== action.slotIndex && s.role === 'Board President' && s.assigned)) {
+        return state; // one President per board
+      }
+      let seen = -1;
+      const staffSlots = state.staffSlots.map(s => {
+        if (s.boardId !== action.boardId) return s;
+        seen += 1;
+        return seen === action.slotIndex ? { ...s, assigned: name !== null, name: name ?? undefined } : s;
+      });
+      const delta = createDeltaEntry(
+        state.ledger,
+        state.actorName,
+        state.currentRole,
+        action.boardId,
+        'SEATING_CHANGE',
+        name ? `${name} seated as ${slot.role} on ${action.boardId}` : `${slot.name ?? 'Seat'} (${slot.role}) vacated on ${action.boardId}`,
+        { boardId: action.boardId, role: slot.role, from: slot.name ?? null, to: name }
+      );
+      return { ...state, staffSlots, ledger: [...state.ledger, delta] };
+    }
+
+    case 'ADMIN_INJECT_GLITCH': {
+      if (state.currentRole !== 'ORBIT Admin') return state;
+      const target = state.candidates.find(c => c.scores.length > 0);
+      if (!target) return state;
+      const delta = createDeltaEntry(
+        state.ledger,
+        state.actorName,
+        state.currentRole,
+        target.id,
+        'ADMIN_REPAIR',
+        `Demo only: test glitch injected (duplicate score on ${target.id}, broken screen selection)`,
+        { demo: true, candidateId: target.id }
+      );
+      return {
+        ...state,
+        candidates: state.candidates.map(c => (c.id === target.id ? { ...c, scores: [...c.scores, { ...c.scores[0] }] } : c)),
+        selectedCandidateId: 'PDO-999',
+        ledger: [...state.ledger, delta]
+      };
+    }
+
+    case 'ADMIN_REPAIR': {
+      if (state.currentRole !== 'ORBIT Admin') return state;
+      const reason = action.reason.trim();
+      if (reason.length < 20) return state;
+      let next: AppState = state;
+      let summary = '';
+      switch (action.repair) {
+        case 'dedupe-scores': {
+          const c = state.candidates.find(x => x.id === action.targetId);
+          if (!c) return state;
+          const seen = new Set<string>();
+          const scores = c.scores.filter(s => (seen.has(s.panelistId) ? false : (seen.add(s.panelistId), true)));
+          next = { ...state, candidates: state.candidates.map(x => (x.id === c.id ? { ...x, scores } : x)) };
+          summary = `Removed ${c.scores.length - scores.length} duplicate score entr${c.scores.length - scores.length === 1 ? 'y' : 'ies'} on ${c.id}; first vote from each voter kept`;
+          break;
+        }
+        case 'retry-ingest': {
+          const c = state.candidates.find(x => x.id === action.targetId);
+          if (!c) return state;
+          next = {
+            ...state,
+            candidates: state.candidates.map(x =>
+              x.id === c.id
+                ? {
+                    ...x,
+                    flow: { ...x.flow, failedIngest: false, errors: [], stage: 'Validated' as const, validatedAt: new Date().toISOString() },
+                    packetReadiness: { ...x.packetReadiness, complete: true, exceptions: [] }
+                  }
+                : x
+            )
+          };
+          summary = `Retried the data load for ${c.id}`;
+          break;
+        }
+        case 'drop-orphan-matches': {
+          const cand = new Set(state.candidates.map(c => c.id));
+          const bil = new Set(state.billets.map(b => b.id));
+          const ok = (m: MatchPair) => cand.has(m.candidateId) && bil.has(m.billetId);
+          next = { ...state, officialMatches: state.officialMatches.filter(ok), sandboxMatches: state.sandboxMatches.filter(ok) };
+          summary = 'Removed matches that pointed to a missing record or billet';
+          break;
+        }
+        case 'fix-selection': {
+          const onBoard = state.candidates.find(c => c.boardId === state.selectedBoardId) ?? state.candidates[0];
+          next = {
+            ...state,
+            selectedBoardId: state.boards.some(b => b.id === state.selectedBoardId) ? state.selectedBoardId : state.boards[0].id,
+            selectedCandidateId: onBoard?.id ?? null,
+            replayIndex: null,
+            candidateFilterText: '',
+            candidateFilterStatus: 'All',
+            candidateFilterMinFit: 0,
+            candidateFilterPme: 'All',
+            candidateFilterPacket: 'All'
+          };
+          summary = 'Reset screen selections and filters to valid values';
+          break;
+        }
+        case 'clear-tamper-flag': {
+          next = { ...state, chainTampered: false };
+          summary = 'Cleared the tamper-test flag (no ledger entry was changed)';
+          break;
+        }
+        case 'expire-access': {
+          const now = new Date();
+          const roleAssignments = Object.fromEntries(
+            Object.entries(state.roleAssignments).filter(([, a]) => !(a.expiresAt && new Date(a.expiresAt) <= now))
+          );
+          next = { ...state, roleAssignments };
+          summary = 'Ended temporary access past its 24-hour limit';
+          break;
+        }
+      }
+      const delta = createDeltaEntry(
+        next.ledger,
+        state.actorName,
+        state.currentRole,
+        action.targetId ?? 'SYSTEM',
+        'ADMIN_REPAIR',
+        `${summary}. Reason: ${reason}`,
+        { repair: action.repair, targetId: action.targetId ?? null, reason }
+      );
+      return { ...next, ledger: [...next.ledger, delta] };
     }
 
     case 'RESET_DEMO': {

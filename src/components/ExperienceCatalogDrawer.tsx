@@ -1,6 +1,8 @@
 import React from 'react';
 import { X, Layers, HelpCircle, CheckCircle2, Clock } from 'lucide-react';
 import { EXPERIENCES, ASSUMPTIONS_AND_QUESTIONS } from '../registry/experiences';
+import { useOrbit } from '../state/context';
+import { canOpen } from '../auth/permissions';
 
 interface ExperienceCatalogDrawerProps {
   open: boolean;
@@ -13,9 +15,11 @@ export const ExperienceCatalogDrawer: React.FC<ExperienceCatalogDrawerProps> = (
   onClose,
   onNavigate
 }) => {
+  const { state } = useOrbit();
   if (!open) return null;
 
-  const live = EXPERIENCES.filter(e => e.status === 'Live');
+  // Only the tools this role may open (permission table)
+  const live = EXPERIENCES.filter(e => e.status === 'Live' && canOpen(state.currentRole, e.viewId));
   const roadmap = EXPERIENCES.filter(e => e.status === 'Roadmap');
 
   return (
@@ -68,7 +72,7 @@ export const ExperienceCatalogDrawer: React.FC<ExperienceCatalogDrawerProps> = (
                   <p className="text-slate-300 italic mb-1.5">"{exp.question}"</p>
                   <div className="flex items-center justify-between text-[11px] text-slate-400">
                     <span>Group: <strong className="text-slate-200">{exp.group}</strong></span>
-                    <span>Roles: {exp.roles.length === 6 ? 'All Roles' : exp.roles.join(', ')}</span>
+                    <span>Roles: {exp.roles.length === 8 ? 'All Roles' : exp.roles.join(', ')}</span>
                   </div>
                 </div>
               ))}

@@ -3,7 +3,7 @@
  * One place for who may score, who may chat, and when the AI fit value may be shown.
  */
 
-import { AppState, Candidate, Role } from '../types';
+import { AiField, AiTiming, AiVisibility, AppState, Candidate, Role } from '../types';
 import { PANELIST_PROFILES } from '../data/seed';
 
 /** Roles that cast a vote on a record. The Board President votes as a panel member. */
@@ -11,7 +11,7 @@ export const SCORING_ROLES: ReadonlyArray<Role> = ['Panelist', 'Board President'
 /** Roles that may post in panel chat. */
 export const CHAT_POST_ROLES: ReadonlyArray<Role> = ['Panelist', 'Board President'];
 /** Roles that may read panel chat (posting roles plus the Board Recorder, who keeps the record). */
-export const CHAT_READ_ROLES: ReadonlyArray<Role> = ['Panelist', 'Board President', 'Board Recorder'];
+export const CHAT_READ_ROLES: ReadonlyArray<Role> = ['Panelist', 'Board President', 'Board Recorder', 'ORBIT Admin'];
 
 export const canScore = (role: Role): boolean => SCORING_ROLES.includes(role);
 export const canPostChat = (role: Role): boolean => CHAT_POST_ROLES.includes(role);
@@ -34,13 +34,63 @@ export function getMyScore(c: Candidate, state: Pick<AppState, 'currentRole' | '
   return c.myScore;
 }
 
+export const AI_FIELDS: { id: AiField; label: string; detail: string }[] = [
+  { id: 'llmFit', label: 'LLM Fit value', detail: 'The AI fit percentage in the queue, Panel Workspace, and Cross Analytics' },
+  { id: 'modelScore', label: 'Model score and feature drivers', detail: 'Lens 6 and the model score in the scoring dock' },
+  { id: 'scribe', label: 'Scribe summary', detail: 'The AI summary, strengths, and considerations beside the record' },
+  { id: 'similar', label: 'Similar records and possible billet fits', detail: 'The vector-match cards under the lenses' },
+  { id: 'panelAvg', label: 'Panel average and score difference', detail: 'Other members\u2019 average, shown in the scoring dock' },
+  { id: 'endorser', label: 'Endorser insights', detail: 'Endorser placement history beside the SOI (lens 7)' }
+];
+
+export const AI_TIMINGS: { id: AiTiming; label: string; detail: string }[] = [
+  { id: 'Before', label: 'Before', detail: 'Visible while reviewing, before scoring' },
+  { id: 'During', label: 'During', detail: 'Visible after the member submits their own score for that record' },
+  { id: 'After', label: 'After', detail: 'Visible only after the Order of Merit is certified' },
+  { id: 'Off', label: 'Off', detail: 'Never shown to panel members' }
+];
+
+export const DEFAULT_AI_VISIBILITY: AiVisibility = {
+  llmFit: 'During',
+  modelScore: 'During',
+  scribe: 'Before',
+  similar: 'Before',
+  panelAvg: 'During',
+  endorser: 'Before'
+};
+
+type VisState = Pick<AppState, 'currentRole' | 'userId' | 'aiVisibility' | 'boards'>;
+
 /**
- * A-5 anti-anchoring: a voter sees the AI fit value only after scoring the record.
- * Roles that do not vote see it at all times.
+ * A-8: the Board President sets when panel members see each AI item. Voters (panel members
+ * and the President) follow the setting; roles that do not vote always see it.
  */
-export function fitVisible(c: Candidate, state: Pick<AppState, 'currentRole' | 'userId'>): boolean {
+export function aiVisible(field: AiField, c: Candidate, state: VisState): boolean {
   if (!canScore(state.currentRole)) return true;
-  return getMyScore(c, state) !== null;
+  const timing = (state.aiVisibility?.[c.boardId] ?? DEFAULT_AI_VISIBILITY)[field];
+  switch (timing) {
+    case 'Before':
+      return true;
+    case 'During':
+      return getMyScore(c, state) !== null;
+    case 'After':
+      return state.boards.find(b => b.id === c.boardId)?.status === 'Complete';
+    case 'Off':
+    default:
+      return false;
+  }
+}
+
+/** A-5: the AI fit value, under the Board President's setting. */
+export function fitVisible(c: Candidate, state: VisState): boolean {
+  return aiVisible('llmFit', c, state);
+}
+
+export function hiddenNote(field: AiField, c: Candidate, state: VisState): string {
+  const timing = (state.aiVisibility?.[c.boardId] ?? DEFAULT_AI_VISIBILITY)[field];
+  if (timing === 'During') return 'shows after you score';
+  if (timing === 'After') return 'shows after the Order of Merit is certified';
+  return 'hidden by the Board President';
 }
 
 // Words that suggest health information. Chat is CUI-capable but PHI is prohibited (INTENT.md).

@@ -1,4 +1,6 @@
 import React from 'react';
+import { useOrbit } from '../state/context';
+import { canOpen } from '../auth/permissions';
 import { X, BookOpen, ArrowRight } from 'lucide-react';
 
 interface DemoGuideDrawerProps {
@@ -8,9 +10,10 @@ interface DemoGuideDrawerProps {
 }
 
 export const DemoGuideDrawer: React.FC<DemoGuideDrawerProps> = ({ open, onClose, onNavigate }) => {
+  const { state } = useOrbit();
   if (!open) return null;
 
-  const steps = [
+  const allSteps = [
     {
       num: '01',
       title: 'Command Center & 8-Phase Bar',
@@ -72,6 +75,8 @@ export const DemoGuideDrawer: React.FC<DemoGuideDrawerProps> = ({ open, onClose,
       instruction: 'Verify SHA-256 chain integrity. Test the BMO Lead "Simulate Tamper" button to watch the chain turn red. In the dropzone, load sample messy files and commit routing to SharePoint.'
     }
   ];
+  // Only steps for tools this role may open (permission table)
+  const steps = allSteps.filter(st => canOpen(state.currentRole, st.viewId));
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-xs transition-opacity">

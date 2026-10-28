@@ -9,6 +9,7 @@
 import { Role } from '../types';
 
 export const ROLE_TABLE: ReadonlyArray<{ userId: string; role: Role }> = [
+  { userId: 'DEV-ADMIN-01', role: 'ORBIT Admin' },
   { userId: 'DEV-BMO-01', role: 'BMO Lead' },
   { userId: 'DEV-PRES-01', role: 'Board President' },
   { userId: 'DEV-PANEL-01', role: 'Panelist' },

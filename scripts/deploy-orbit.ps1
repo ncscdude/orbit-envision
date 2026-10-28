@@ -55,9 +55,10 @@ if (-not (Test-Path $Repo)) {
   Run 'Clone from bundle' { git clone $Bundle $Repo -b $Branch }
 }
 Set-Location $Repo
-if ((git status --porcelain).Length -gt 0) {
+# Only tracked edits are set aside; untracked folders (for example .claude) stay where they are
+if ((git status --porcelain --untracked-files=no).Length -gt 0) {
   Write-Host '    Local edits found. Saving them aside with git stash (nothing is lost).' -ForegroundColor Yellow
-  Run 'Stash local edits' { git stash push -u -m 'saved before deploy-orbit.ps1' }
+  Run 'Stash local edits' { git stash push -m 'saved before deploy-orbit.ps1' }
 }
 Run "Switch to $Branch" { git checkout $Branch }
 if (Test-Path $Bundle) {

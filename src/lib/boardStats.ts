@@ -272,6 +272,35 @@ export function computeBoardStatistics(boardId: string, state: AppState): BoardS
  */
 export function getBoardRolePermissions(role: Role): BoardRolePermission {
   switch (role) {
+    case 'ORBIT Admin':
+      return {
+        role,
+        accessLevel: 'SYSTEM_ADMIN',
+        title: 'ORBIT System Administrator',
+        badgeColor: '#f87171',
+        canLockPopulation: false,
+        canCertifyOom: false,
+        canScoreCandidates: false,
+        canEditMilestones: false,
+        canManageRisks: false,
+        canViewTalentLossData: true,
+        canExportAuditPackage: true,
+        canRebalanceDocket: false,
+        firewallActive: false,
+        description: 'Sees every tool and record to diagnose and repair the system. Requests role changes (BMO Lead approves) and manages board seating. Never votes or makes a board decision.',
+        restrictions: [
+          'No vote, no override, no board decision; attempts are refused and logged',
+          'Role changes need BMO Lead approval; no one changes their own role',
+          'Every repair needs a reason of at least 20 characters and is logged'
+        ],
+        allowedActions: [
+          'View every tool, record, score, chat, and ledger entry',
+          'Run diagnostics and logged repairs',
+          'Request role changes and temporary (24-hour) access',
+          'Seat and vacate board members (one President per board)'
+        ]
+      };
+
     case 'BMO Lead':
       return {
         role,
@@ -487,6 +516,7 @@ export function getBoardRolePermissions(role: Role): BoardRolePermission {
  */
 export function getAllBoardRolePermissions(): BoardRolePermission[] {
   const roles: Role[] = [
+    'ORBIT Admin',
     'BMO Lead',
     'Board President',
     'Board Recorder',

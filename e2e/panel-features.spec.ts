@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 
 // A-1 to A-5, A-7: Board President, panel chat, full-text reader, per-board rosters, fit reveal.
-const STATE_KEY = 'orbit_demo_state_v5';
+const STATE_KEY = 'orbit_demo_state_v6';
 
 async function switchRole(page: Page, role: string) {
   await page.getByRole('button', { name: 'Select user role' }).click();
@@ -12,10 +12,12 @@ async function ledgerTypes(page: Page): Promise<string[]> {
   return page.evaluate(k => (JSON.parse(localStorage.getItem(k) || '{}').ledger ?? []).map((e: { type: string }) => e.type), STATE_KEY);
 }
 
-test('Board President lands on the queue with panel oversight and hidden AI fit', async ({ page }) => {
+test('Board President lands on Panel Oversight; the queue shows oversight and hidden AI fit', async ({ page }) => {
   await page.goto('/');
   await switchRole(page, 'Board President');
   const main = page.locator('main');
+  await expect(main.getByTestId('ai-visibility')).toBeVisible();
+  await page.locator('nav button', { hasText: 'Candidate Queue' }).click();
   await expect(main.getByTestId('president-oversight')).toBeVisible();
   await expect(main.getByText('after you score').first()).toBeVisible();
   await main.getByRole('button', { name: 'How this list was built' }).click();
@@ -47,7 +49,7 @@ test('Panelist reads the full record, discusses it, and the AI fit appears only 
   await expect(chat.getByRole('alert')).toContainText('health information');
 
   await main.getByRole('button', { name: 'Predictive & Drivers' }).click();
-  await expect(main).toContainText('Fit value shows after you score');
+  await expect(main).toContainText('The AI fit value shows after you score');
   await page.getByRole('button', { name: '8.5', exact: true }).click();
   await page.getByRole('button', { name: /Submit & Next/ }).click();
   await page.getByRole('button', { name: 'Previous candidate in queue' }).click();

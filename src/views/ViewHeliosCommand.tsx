@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useOrbit } from '../state/context';
+import { useNav } from '../state/useNav';
 import { Candidate } from '../types';
 import { MetricPopover } from '../components/MetricPopover';
 import {
@@ -20,6 +21,7 @@ import { RequireRole } from '../auth/RequireRole';
 
 const ViewHeliosCommandContent: React.FC = () => {
   const { state, dispatch, useMetric } = useOrbit();
+  const { go } = useNav();
   const [activeSubTab, setActiveSubTab] = useState<'A' | 'B' | 'C'>('A');
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
 
@@ -89,7 +91,7 @@ const ViewHeliosCommandContent: React.FC = () => {
 
   const handleOpenCandidate = (candId: string) => {
     dispatch({ type: 'SELECT_CANDIDATE', candidateId: candId });
-    dispatch({ type: 'SET_VIEW', viewId: 'VIEW-PanelReview' });
+    go('VIEW-PanelReview');
   };
 
   return (

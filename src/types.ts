@@ -4,6 +4,7 @@
  */
 
 export type Role =
+  | 'ORBIT Admin'
   | 'Board President'
   | 'Panelist'
   | 'Board Recorder'
@@ -269,8 +270,13 @@ export type DeltaType =
   | 'THREAD_CLOSE'
   | 'MESSAGE_PIN'
   | 'REVOTE_CALL'
-  | 'FIT_REVEAL'
-  | 'RECORD_OPEN';
+  | 'RECORD_OPEN'
+  | 'AI_VISIBILITY_CHANGE'
+  | 'RECORD_ISSUE'
+  | 'ROLE_REQUEST'
+  | 'ROLE_DECISION'
+  | 'SEATING_CHANGE'
+  | 'ADMIN_REPAIR';
 
 // Role recorded on a DELTA entry. 'Unmapped' is used only when access is denied
 // because the identity has no ORBIT role.
@@ -280,7 +286,7 @@ export type AccessDenialReason = 'UNKNOWN_IDENTITY' | 'UNMAPPED_ROLE';
 
 export interface BoardRolePermission {
   role: Role;
-  accessLevel: 'FULL_ADMIN' | 'PANEL_OVERSIGHT' | 'OPERATIONS_AUDIT' | 'EVALUATOR_FIREWALLED' | 'SLATING_ASSIGNMENTS' | 'EXECUTIVE_READONLY' | 'TALENT_MANAGEMENT';
+  accessLevel: 'SYSTEM_ADMIN' | 'FULL_ADMIN' | 'PANEL_OVERSIGHT' | 'OPERATIONS_AUDIT' | 'EVALUATOR_FIREWALLED' | 'SLATING_ASSIGNMENTS' | 'EXECUTIVE_READONLY' | 'TALENT_MANAGEMENT';
   title: string;
   badgeColor: string;
   canLockPopulation: boolean;
@@ -487,6 +493,28 @@ export interface ChatMessage {
   pinned: boolean;
 }
 
+// AI visibility (set by the Board President for panel members, per board)
+export type AiField = 'llmFit' | 'modelScore' | 'scribe' | 'similar' | 'panelAvg' | 'endorser';
+export type AiTiming = 'Before' | 'During' | 'After' | 'Off';
+export type AiVisibility = Record<AiField, AiTiming>;
+
+// Role change requests: the ORBIT Admin requests, the BMO Lead approves (two-person rule)
+export interface RoleRequest {
+  id: string;
+  userId: string;
+  displayName: string;
+  fromRole: Role | null;
+  toRole: Role | null; // null removes access
+  reason: string;
+  requestedBy: string;
+  requestedAt: string;
+  temporary: boolean; // break-glass: expires 24 hours after approval
+  status: 'Pending' | 'Approved' | 'Rejected';
+  decidedBy?: string;
+  decidedAt?: string;
+  expiresAt?: string;
+}
+
 export interface AppState {
   currentRole: Role;
   actorName: string;
@@ -514,6 +542,13 @@ export interface AppState {
   // Panel chat (A-2)
   chat: ChatMessage[];
   closedThreads: string[]; // candidate IDs whose discussion thread the Board President closed
+
+  // Board President AI visibility settings, by board ID (A-8)
+  aiVisibility: Record<string, AiVisibility>;
+
+  // Access Admin
+  roleRequests: RoleRequest[];
+  roleAssignments: Record<string, { role: Role | null; expiresAt: string | null }>; // approved changes by userId
 
   // Match Lab State
   activeProposalMode: 'Official' | 'Sandbox';

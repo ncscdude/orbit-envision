@@ -1,9 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useOrbit } from '../state/context';
+import { useNav } from '../state/useNav';
 import { Candidate } from '../types';
 import { RequireRole } from '../auth/RequireRole';
 import { buildRoster } from '../lib/roster';
-import { canScore, canReadChat, fitVisible, getMyScore, panelOversight, scoreKeyFor } from '../lib/panel';
+import { canScore, canReadChat, fitVisible, getMyScore, hiddenNote, panelOversight, scoreKeyFor } from '../lib/panel';
 import { PanelChat } from '../components/PanelChat';
 import {
   Search,
@@ -21,6 +22,7 @@ import {
 
 const ViewCandidateQueueContent: React.FC = () => {
   const { state, dispatch, useMetric } = useOrbit();
+  const { go } = useNav();
   const [hoveredCandidate, setHoveredCandidate] = useState<Candidate | null>(null);
   const voter = canScore(state.currentRole);
   // Voters start in record-ID order: sorting by a hidden AI value would leak it (A-5).
@@ -152,7 +154,7 @@ const ViewCandidateQueueContent: React.FC = () => {
 
   const handleSelectCandidate = (cand: Candidate) => {
     dispatch({ type: 'SELECT_CANDIDATE', candidateId: cand.id });
-    dispatch({ type: 'SET_VIEW', viewId: 'VIEW-PanelReview' });
+    go('VIEW-PanelReview');
   };
 
   return (
@@ -179,7 +181,7 @@ const ViewCandidateQueueContent: React.FC = () => {
             </select>
             <button
               type="button"
-              onClick={() => dispatch({ type: 'SET_VIEW', viewId: 'VIEW-BoardDetail' })}
+              onClick={() => go('VIEW-BoardDetail')}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-mono font-medium text-cyan-300 bg-cyan-950/70 border border-cyan-800 hover:bg-cyan-900 transition-colors"
               title="Drill down to individual board statistics, stage-gates, and role permissions"
             >
@@ -494,8 +496,8 @@ const ViewCandidateQueueContent: React.FC = () => {
                             {cand.llmFitScore}%
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 font-mono text-[11px] text-slate-500" title="Shows after you score this record">
-                            <EyeOff className="w-3 h-3" /> after you score
+                          <span className="inline-flex items-center gap-1 font-mono text-[11px] text-slate-500" title="Set by the Board President in Panel Oversight">
+                            <EyeOff className="w-3 h-3" /> {hiddenNote('llmFit', cand, state)}
                           </span>
                         )}
                       </td>
