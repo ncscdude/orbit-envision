@@ -2,10 +2,92 @@
 import type { GateResults } from '../lib/gates';
 
 export const GATE_RESULTS: GateResults = {
-  recordedAt: null,
-  branch: '',
-  commit: '',
-  lint: { state: 'not-run', errors: 0, warnings: 0, files: 0 },
-  unit: { state: 'not-run', passed: 0, failed: 0, total: 0, files: [] },
-  acceptance: { state: 'not-run', passed: 0, failed: 0, total: 0 }
+  "recordedAt": "2026-11-12T02:38:19.453Z",
+  "branch": "mvp-scope",
+  "commit": "d49c5bd",
+  "lint": {
+    "state": "passed",
+    "errors": 0,
+    "warnings": 0,
+    "files": 83
+  },
+  "unit": {
+    "state": "passed",
+    "passed": 72,
+    "failed": 0,
+    "total": 72,
+    "files": [
+      {
+        "file": "src/auth/identity.test.ts",
+        "passed": 10,
+        "failed": 0
+      },
+      {
+        "file": "src/auth/permissions.test.ts",
+        "passed": 11,
+        "failed": 0
+      },
+      {
+        "file": "src/guardrails/hosting.test.ts",
+        "passed": 5,
+        "failed": 0
+      },
+      {
+        "file": "src/guardrails/termGuard.test.ts",
+        "passed": 1,
+        "failed": 0
+      },
+      {
+        "file": "src/lib/boardStats.test.ts",
+        "passed": 4,
+        "failed": 0
+      },
+      {
+        "file": "src/lib/lateFiles.test.ts",
+        "passed": 3,
+        "failed": 0
+      },
+      {
+        "file": "src/lib/lossCalculator.test.ts",
+        "passed": 4,
+        "failed": 0
+      },
+      {
+        "file": "src/lib/matchboard.test.ts",
+        "passed": 2,
+        "failed": 0
+      },
+      {
+        "file": "src/lib/metrics.test.ts",
+        "passed": 6,
+        "failed": 0
+      },
+      {
+        "file": "src/lib/panel.test.ts",
+        "passed": 12,
+        "failed": 0
+      },
+      {
+        "file": "src/registry/experiences.test.ts",
+        "passed": 3,
+        "failed": 0
+      },
+      {
+        "file": "src/scope.test.ts",
+        "passed": 5,
+        "failed": 0
+      },
+      {
+        "file": "src/state/reducer.test.ts",
+        "passed": 6,
+        "failed": 0
+      }
+    ]
+  },
+  "acceptance": {
+    "state": "passed",
+    "passed": 74,
+    "failed": 0,
+    "total": 74
+  }
 };
