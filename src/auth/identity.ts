@@ -7,6 +7,7 @@
 import { Role } from '../types';
 import { DEV_USERS_SEED } from '../data/seed';
 import { lookupRole } from './roleMap';
+import { IS_MVP } from '../scope';
 
 export interface Identity {
   userId: string;
@@ -28,7 +29,8 @@ export interface DevIdentityProvider extends IdentityProvider {
 
 type KeyValueStorage = Pick<Storage, 'getItem' | 'setItem'>;
 
-export const DEV_USER_STORAGE_KEY = 'orbit_dev_user';
+// The MVP build keeps its own selection so it never collides with the full demo on one site.
+export const DEV_USER_STORAGE_KEY = IS_MVP ? 'orbit_mvp_dev_user' : 'orbit_dev_user';
 const DEFAULT_DEV_USER_ID = 'DEV-BMO-01';
 
 function browserStorage(): KeyValueStorage | null {

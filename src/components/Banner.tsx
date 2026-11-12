@@ -1,4 +1,5 @@
 import React from 'react';
+import { IS_MVP } from '../scope';
 
 export const Banner: React.FC = () => {
   return (
@@ -10,6 +11,12 @@ export const Banner: React.FC = () => {
         <span>USSF S1/ETM/TMEB</span>
         <span className="text-slate-600">·</span>
         <span className="text-slate-300">ORBIT / HELIOS</span>
+        {IS_MVP && (
+          <>
+            <span className="text-slate-600">·</span>
+            <span className="text-amber-300">MVP: ONE BOARD, DATA IN TO AUDIT</span>
+          </>
+        )}
       </div>
       <div className="flex items-center gap-3">
         <span className="text-amber-400/90 font-medium bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30">

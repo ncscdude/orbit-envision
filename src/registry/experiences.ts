@@ -6,8 +6,9 @@
 
 import { ExperienceDef } from '../types';
 import { rolesFor } from '../auth/permissions';
+import { IS_MVP, MVP_VIEW_IDS } from '../scope';
 
-export const EXPERIENCES: ExperienceDef[] = [
+const FULL_EXPERIENCES: ExperienceDef[] = [
   // Live Experiences
   {
     id: 'EXP-001',
@@ -257,6 +258,43 @@ export const EXPERIENCES: ExperienceDef[] = [
     status: 'Roadmap'
   }
 ];
+
+// MVP build only: the tool that shows how ORBIT tests for failure.
+const MVP_EXPERIENCES: ExperienceDef[] = [
+  {
+    id: 'EXP-022',
+    ideaId: null,
+    viewId: 'VIEW-FailureTests',
+    title: 'Failure Tests',
+    group: 'Audit',
+    roles: rolesFor('VIEW-FailureTests'),
+    question: 'How does ORBIT test for failure, and is anything failing right now?',
+    metricIds: ['M-104', 'M-302', 'M-304', 'M-504'],
+    status: 'Live',
+    demoStep: 'Read the three build gates, run a drill, and watch a failure get caught, logged, and repaired.'
+  }
+];
+
+/**
+ * MVP scope: in-scope tools stay Live, in board order. Tools already built in the full demo
+ * but outside the MVP move to the catalog backlog as the next increment.
+ */
+function scopeToMvp(all: ExperienceDef[]): ExperienceDef[] {
+  const inScope = MVP_VIEW_IDS.map(id => all.find(e => e.viewId === id && e.status === 'Live')).filter(
+    (e): e is ExperienceDef => e !== undefined
+  );
+  const later = all
+    .filter(e => !MVP_VIEW_IDS.includes(e.viewId))
+    .map(e => ({ ...e, status: 'Roadmap' as const }));
+  return [...inScope, ...later];
+}
+
+/** Experiences already built in the full demo that the MVP build holds for the next increment. */
+export const BUILT_NEXT_IDS: ReadonlySet<string> = new Set(
+  IS_MVP ? FULL_EXPERIENCES.filter(e => e.status === 'Live' && !MVP_VIEW_IDS.includes(e.viewId)).map(e => e.id) : []
+);
+
+export const EXPERIENCES: ExperienceDef[] = IS_MVP ? scopeToMvp([...FULL_EXPERIENCES, ...MVP_EXPERIENCES]) : FULL_EXPERIENCES;
 
 export const ASSUMPTIONS_AND_QUESTIONS = [
   {

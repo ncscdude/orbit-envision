@@ -14,8 +14,10 @@ import { canScore, canPostChat, scoreKeyFor, getMyScore, containsPossiblePhi, DE
 import { RepairKind } from '../lib/diagnostics';
 import { DEV_USERS_SEED } from '../data/seed';
 import { lookupRole } from '../auth/roleMap';
+import { IS_MVP, MVP_BOARD_ID, MVP_LANDING } from '../scope';
 
-export const STORAGE_KEY = 'orbit_demo_state_v6';
+// The MVP build keeps its own saved state so it never collides with the full demo on one site.
+export const STORAGE_KEY = IS_MVP ? 'orbit_mvp_state_v1' : 'orbit_demo_state_v6';
 
 const CHAT_SEED: ChatMessage[] = [
   {
@@ -43,6 +45,7 @@ const CHAT_SEED: ChatMessage[] = [
 ];
 
 export function getDefaultLandingForRole(role: Role): string {
+  if (IS_MVP) return MVP_LANDING[role];
   switch (role) {
     case 'ORBIT Admin':
       return 'VIEW-AccessAdmin';
@@ -169,7 +172,7 @@ export function createInitialState(): AppState {
   );
   initialLedger.push(init2);
 
-  return {
+  const full: AppState = {
     currentRole: 'BMO Lead',
     actorName: 'Col Vance (BMO Lead)',
     userId: '',
@@ -218,7 +221,29 @@ export function createInitialState(): AppState {
     candidateFilterPacket: 'All',
     lastShuffleSeed: null
   };
+  return IS_MVP ? scopeStateToMvp(full) : full;
 }
+
+/** MVP build: one board and only the data that belongs to it. Same objects, fewer rows. */
+function scopeStateToMvp(full: AppState): AppState {
+  const candidates = full.candidates.filter(c => c.boardId === MVP_BOARD_ID);
+  const onBoard = new Set(candidates.map(c => c.id));
+  return {
+    ...full,
+    activeViewId: MVP_LANDING[full.currentRole],
+    selectedBoardId: MVP_BOARD_ID,
+    boards: full.boards.filter(b => b.id === MVP_BOARD_ID),
+    candidates,
+    milestones: full.milestones.filter(m => m.boardId === MVP_BOARD_ID),
+    risks: full.risks.filter(r => r.boardId === MVP_BOARD_ID),
+    staffSlots: full.staffSlots.filter(sl => sl.boardId === MVP_BOARD_ID),
+    commanderActions: full.commanderActions.filter(a => onBoard.has(a.candidateId)),
+    chat: full.chat.filter(m => m.boardId === MVP_BOARD_ID)
+  };
+}
+
+/** Late files: FILE_ROUTED ledger entries carry { late: true, fileId, candidateId }. */
+export const LATE_FILE_NODE = '03ROP';
 
 export type Action =
   | { type: 'SET_ROLE'; role: Role; actorName?: string }
@@ -255,6 +280,8 @@ export type Action =
   | { type: 'ROLLBACK_PLAYBOOK' }
   | { type: 'ROUTE_FILE'; fileId: string; targetNode: string }
   | { type: 'COMMIT_ROUTING' }
+  | { type: 'RECEIVE_LATE_FILE'; candidateId: string }
+  | { type: 'ACCEPT_LATE_FILE'; fileId: string }
   | { type: 'RETRY_INGEST'; candidateId: string }
   | { type: 'LOCK_POPULATION'; boardId: string }
   | { type: 'UPDATE_MILESTONE'; milestoneId: string; updates: Partial<Milestone> }
@@ -307,7 +334,8 @@ const ADMIN_NO_DECISION: ReadonlyArray<Action['type']> = [
   'ADJUDICATE_HEARTBURN', 'ROLLBACK_PLAYBOOK', 'LOCK_POPULATION', 'CERTIFY_OOM', 'CLEAR_BOARD_EXCEPTIONS',
   'UPDATE_MILESTONE', 'UPDATE_RISK', 'EDIT_KPI', 'ADD_IMPROVEMENT_ACTION', 'UPDATE_COMMANDER_ACTION',
   'SAVE_TALENT_NOTE', 'POST_CHAT', 'PIN_MESSAGE', 'CLOSE_THREAD', 'CALL_REVOTE', 'SET_AI_VISIBILITY',
-  'REPORT_RECORD_ISSUE', 'ROUTE_FILE', 'COMMIT_ROUTING', 'TAMPER_CHAIN', 'DECIDE_ROLE_REQUEST'
+  'REPORT_RECORD_ISSUE', 'ROUTE_FILE', 'COMMIT_ROUTING', 'TAMPER_CHAIN', 'DECIDE_ROLE_REQUEST',
+  'RECEIVE_LATE_FILE', 'ACCEPT_LATE_FILE'
 ];
 
 export function appReducer(state: AppState, action: Action): AppState {
@@ -864,6 +892,77 @@ export function appReducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         canonicalFiles: updated,
+        ledger: [...state.ledger, delta]
+      };
+    }
+
+    // A file that arrives after the record freeze. It is renamed and checked like any other
+    // file, always lands as WARN, and waits for the BMO Lead. Nothing reaches the record yet.
+    case 'RECEIVE_LATE_FILE': {
+      if (state.currentRole !== 'BMO Lead' && state.currentRole !== 'Board Recorder') return state;
+      const record = state.candidates.find(c => c.id === action.candidateId);
+      if (!record) return state;
+      const now = new Date();
+      const fileId = `FILE-${(state.canonicalFiles.length + 1).toString().padStart(3, '0')}`;
+      const stamp = now.toISOString().slice(0, 10).replace(/-/g, '');
+      const slug = record.id.toLowerCase();
+      const delta = createDeltaEntry(
+        state.ledger,
+        state.actorName,
+        state.currentRole,
+        fileId,
+        'FILE_ROUTED',
+        `Late file ${fileId} received for ${record.id} after record freeze. Gate result WARN; waiting for BMO Lead acceptance.`,
+        { late: true, fileId, candidateId: record.id, accepted: false }
+      );
+      return {
+        ...state,
+        canonicalFiles: [
+          ...state.canonicalFiles,
+          {
+            id: fileId,
+            originalName: `ROP update ${record.id} late.pdf`,
+            fileSize: 176400,
+            extension: 'pdf',
+            detectedDocType: 'ROPs',
+            canonicalName: `${LATE_FILE_NODE}_${stamp}_${slug}-performance-report-update.pdf`,
+            targetNode: LATE_FILE_NODE,
+            checkResult: 'WARN',
+            reason: `Late file for ${record.id}: arrived after record freeze; BMO Lead acceptance required`,
+            routedAt: now.toISOString(),
+            committed: false
+          }
+        ],
+        ledger: [...state.ledger, delta]
+      };
+    }
+
+    // The BMO Lead accepts a late file after review. Only then does the record change, and the
+    // earlier version is kept. The gate result stays WARN: acceptance is a person's decision.
+    case 'ACCEPT_LATE_FILE': {
+      if (state.currentRole !== 'BMO Lead') return state;
+      const file = state.canonicalFiles.find(f => f.id === action.fileId);
+      const received = state.ledger.find(e => e.type === 'FILE_ROUTED' && e.payload.late === true && e.payload.fileId === action.fileId);
+      if (!file || !received || file.committed) return state;
+      const candidateId = String(received.payload.candidateId);
+      const at = new Date().toISOString();
+      const delta = createDeltaEntry(
+        state.ledger,
+        state.actorName,
+        state.currentRole,
+        action.fileId,
+        'FILE_ROUTED',
+        `Late file ${action.fileId} accepted for ${candidateId} after review and filed to ${file.targetNode}. Earlier version kept.`,
+        { late: true, fileId: action.fileId, candidateId, accepted: true }
+      );
+      return {
+        ...state,
+        canonicalFiles: state.canonicalFiles.map(f =>
+          f.id === action.fileId
+            ? { ...f, committed: true, routedAt: at, reason: `Late file for ${candidateId}: accepted by ${state.actorName} after review; earlier version kept` }
+            : f
+        ),
+        candidates: state.candidates.map(c => (c.id === candidateId ? { ...c, freshness: { ...c.freshness, rops: at } } : c)),
         ledger: [...state.ledger, delta]
       };
     }

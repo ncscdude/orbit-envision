@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, Layers, HelpCircle, CheckCircle2, Clock } from 'lucide-react';
-import { EXPERIENCES, ASSUMPTIONS_AND_QUESTIONS } from '../registry/experiences';
+import { EXPERIENCES, ASSUMPTIONS_AND_QUESTIONS, BUILT_NEXT_IDS } from '../registry/experiences';
 import { useOrbit } from '../state/context';
 import { canOpen } from '../auth/permissions';
 
@@ -96,13 +96,13 @@ export const ExperienceCatalogDrawer: React.FC<ExperienceCatalogDrawerProps> = (
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-semibold text-slate-300 text-xs">{exp.title}</span>
                     <span className="font-mono text-[10px] bg-amber-950/60 text-amber-300 px-1.5 py-0.5 rounded border border-amber-800/60">
-                      {exp.ideaId} · Roadmap
+                      {BUILT_NEXT_IDS.has(exp.id) ? 'Built · next increment' : `${exp.ideaId} · Roadmap`}
                     </span>
                   </div>
                   <p className="text-slate-400 italic mb-1.5">"{exp.question}"</p>
                   <div className="flex items-center justify-between text-[11px] text-slate-500">
                     <span>Group: {exp.group}</span>
-                    <span>Target: {exp.roles.join(', ')}</span>
+                    <span>{BUILT_NEXT_IDS.has(exp.id) ? 'Running in the full demo' : `Target: ${exp.roles.join(', ')}`}</span>
                   </div>
                 </div>
               ))}

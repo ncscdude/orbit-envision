@@ -5,6 +5,7 @@ import { identityProvider, devIdentityProvider } from '../auth/identity';
 import { ShieldCheck, ShieldAlert, Clock, Layers, BookOpen, ChevronDown, UserCheck, KeyRound } from 'lucide-react';
 import { effectiveRole } from '../state/reducer';
 import { canOpen } from '../auth/permissions';
+import { IS_MVP } from '../scope';
 
 interface HeaderProps {
   onOpenCatalog: () => void;
@@ -53,6 +54,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCatalog, onOpenDemoGuide }
                 <span className="font-mono text-[10px] text-cyan-400 bg-cyan-950/80 px-1.5 py-0.5 rounded border border-cyan-800">
                   v4.2-HELIOS
                 </span>
+                {IS_MVP && (
+                  <span className="font-mono text-[10px] text-amber-300 bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-700" data-testid="mvp-badge">
+                    MVP · ONE BOARD
+                  </span>
+                )}
               </div>
               <p className="text-[10px] text-slate-400 font-medium">
                 USSF ETMO / BMO · Operational Repository for Boards & Talent
@@ -107,7 +113,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCatalog, onOpenDemoGuide }
           </button>
 
           {/* Who can see what: the Field Guide permissions table (same table the app uses) */}
-          <a
+          {!IS_MVP && <a
             href="/guide/#permissions"
             target="_blank"
             rel="noopener"
@@ -116,7 +122,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCatalog, onOpenDemoGuide }
           >
             <KeyRound className="w-3.5 h-3.5 text-cyan-400" />
             <span>Roles &amp; Access</span>
-          </a>
+          </a>}
 
           {/* Demo Guide Drawer Trigger */}
           <button

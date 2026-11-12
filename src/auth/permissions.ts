@@ -14,6 +14,7 @@
  */
 
 import { Role } from '../types';
+import { IS_MVP, MVP_ONLY_VIEW_IDS, MVP_ROLES, MVP_VIEW_IDS } from '../scope';
 
 export type AccessLevel = 'Full' | 'Owns' | 'Votes' | 'Uses' | 'View' | 'Limited';
 
@@ -22,7 +23,7 @@ export interface ToolAccess {
   note?: string;
 }
 
-export const ROLE_ORDER: Role[] = [
+const FULL_ROLE_ORDER: Role[] = [
   'ORBIT Admin',
   'BMO Lead',
   'Board President',
@@ -33,6 +34,9 @@ export const ROLE_ORDER: Role[] = [
   'CFM / Career Planner'
 ];
 
+/** Roles in this build. The MVP build carries only the roles one board needs. */
+export const ROLE_ORDER: Role[] = IS_MVP ? FULL_ROLE_ORDER.filter(r => MVP_ROLES.includes(r)) : FULL_ROLE_ORDER;
+
 export interface ToolPermission {
   viewId: string;
   title: string;
@@ -42,7 +46,7 @@ export interface ToolPermission {
 
 const ADMIN: ToolAccess = { level: 'Full' }; // diagnose and repair; never votes or overrides
 
-export const PERMISSIONS: ToolPermission[] = [
+const ALL_PERMISSIONS: ToolPermission[] = [
   {
     viewId: 'VIEW-AccessAdmin',
     title: 'Access Admin',
@@ -196,8 +200,34 @@ export const PERMISSIONS: ToolPermission[] = [
       'HQ Strategic Viewer': { level: 'View' },
       'CFM / Career Planner': { level: 'View' }
     }
+  },
+  {
+    // MVP build only (see src/scope.ts)
+    viewId: 'VIEW-FailureTests',
+    title: 'Failure Tests',
+    purpose: 'How ORBIT tests for failure: build gates, live health checks, record and file gates, decision guards',
+    access: {
+      'ORBIT Admin': { level: 'Owns', note: 'Runs drills and logged repairs' },
+      'BMO Lead': { level: 'View', note: 'Runs the ledger tamper test' },
+      'Board President': { level: 'View' },
+      'Board Recorder': { level: 'View' }
+    }
   }
 ];
+
+function scopeToMvp(all: ToolPermission[]): ToolPermission[] {
+  return MVP_VIEW_IDS.map(id => all.find(p => p.viewId === id))
+    .filter((p): p is ToolPermission => p !== undefined)
+    .map(p => ({
+      ...p,
+      access: Object.fromEntries(Object.entries(p.access).filter(([role]) => MVP_ROLES.includes(role as Role))) as ToolPermission['access']
+    }));
+}
+
+/** The permission table for this build. Full build: every tool except the MVP-only ones. */
+export const PERMISSIONS: ToolPermission[] = IS_MVP
+  ? scopeToMvp(ALL_PERMISSIONS)
+  : ALL_PERMISSIONS.filter(p => !MVP_ONLY_VIEW_IDS.includes(p.viewId));
 
 export function permissionFor(viewId: string): ToolPermission | undefined {
   return PERMISSIONS.find(p => p.viewId === viewId);

@@ -3,7 +3,7 @@
  * Unifies BMO, HQ Strategic, Panelist, Assignments, and CFM perspectives
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AppProvider, useOrbit } from './state/context';
 import { Banner } from './components/Banner';
 import { Header } from './components/Header';
@@ -11,6 +11,7 @@ import { Footer } from './components/Footer';
 import { ExperienceCatalogDrawer } from './components/ExperienceCatalogDrawer';
 import { DemoGuideDrawer } from './components/DemoGuideDrawer';
 import { AccessDenied } from './auth/AccessDenied';
+import { IS_MVP } from './scope';
 
 // Views
 import { ViewCommandCenter } from './views/ViewCommandCenter';
@@ -26,11 +27,16 @@ import { ViewDeltaLedger } from './views/ViewDeltaLedger';
 import { ViewBoardDetail } from './views/ViewBoardDetail';
 import { ViewAccessAdmin } from './views/ViewAccessAdmin';
 import { ViewPanelOversight } from './views/ViewPanelOversight';
+import { ViewFailureTests } from './views/ViewFailureTests';
 
 const OrbitAppContent: React.FC = () => {
   const { state, dispatch } = useOrbit();
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [demoGuideOpen, setDemoGuideOpen] = useState(false);
+
+  useEffect(() => {
+    if (IS_MVP) document.title = 'Project ORBIT MVP: one board, data in to audit';
+  }, []);
 
   const handleNavigate = (viewId: string) => {
     dispatch({ type: 'SET_VIEW', viewId });
@@ -64,6 +70,8 @@ const OrbitAppContent: React.FC = () => {
         return <ViewAccessAdmin />;
       case 'VIEW-PanelOversight':
         return <ViewPanelOversight />;
+      case 'VIEW-FailureTests':
+        return <ViewFailureTests />;
       default:
         return <ViewCommandCenter />;
     }
@@ -100,7 +108,7 @@ const OrbitAppContent: React.FC = () => {
       <main className="flex-1 p-4 sm:p-6 overflow-x-hidden">
         {state.currentRole === 'ORBIT Admin' && (
           <div className="max-w-7xl mx-auto mb-3 px-3 py-2 rounded border border-red-900/70 bg-red-950/30 text-xs text-red-200" role="note">
-            Admin view: you can see everything and run logged repairs in Access Admin. Votes and board decisions are refused and logged.
+            Admin view: you can see everything and run logged repairs in {IS_MVP ? 'Failure Tests' : 'Access Admin'}. Votes and board decisions are refused and logged.
           </div>
         )}
         {renderActiveView()}

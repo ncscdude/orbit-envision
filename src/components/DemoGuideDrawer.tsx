@@ -1,6 +1,7 @@
 import React from 'react';
 import { useOrbit } from '../state/context';
 import { canOpen } from '../auth/permissions';
+import { IS_MVP } from '../scope';
 import { X, BookOpen, ArrowRight } from 'lucide-react';
 
 interface DemoGuideDrawerProps {
@@ -13,7 +14,59 @@ export const DemoGuideDrawer: React.FC<DemoGuideDrawerProps> = ({ open, onClose,
   const { state } = useOrbit();
   if (!open) return null;
 
-  const allSteps = [
+  // MVP build: one board from data in to audit, in the order the board moves.
+  const mvpSteps = [
+    {
+      num: '01',
+      title: 'Data In: Pipeline Gates & Source Freshness',
+      viewId: 'VIEW-HeliosCommand',
+      instruction: 'As BMO Lead: locate the failed ingest on PDO-015 and click "Retry". Then read the source freshness bars: MilPDS is amber and SURF is red.'
+    },
+    {
+      num: '02',
+      title: 'Late File After Record Freeze',
+      viewId: 'VIEW-DeltaLedger',
+      instruction: 'As BMO Lead: under Late Files After Record Freeze, pick a record and click "Receive Late File". It is renamed and held at WARN. Click "Accept and File", then find both steps in the ledger above.'
+    },
+    {
+      num: '03',
+      title: 'President Sets What the Panel Sees From AI',
+      viewId: 'VIEW-PanelOversight',
+      instruction: 'As Board President: set when panel members see each AI item (Before, During, After, or Off) and save. The change is logged.'
+    },
+    {
+      num: '04',
+      title: 'A Person Scores the Record',
+      viewId: 'VIEW-PanelReview',
+      instruction: 'As Panelist: open PDO-001. The model score and panel average stay hidden until you select a score and submit. Review the AI summary and sign it off.'
+    },
+    {
+      num: '05',
+      title: 'Divergent Scores Reviewed',
+      viewId: 'VIEW-ScoringAudit',
+      instruction: 'As Board President: review records where a score sits 1.5 or more points from the panel average, and adjudicate one.'
+    },
+    {
+      num: '06',
+      title: 'Lock the Population & Certify the Order of Merit',
+      viewId: 'VIEW-BoardDetail',
+      instruction: 'As BMO Lead: read the board stage gates and packet check, then lock the population and certify the Order of Merit when the gates allow.'
+    },
+    {
+      num: '07',
+      title: 'Every Action in the DELTA Ledger',
+      viewId: 'VIEW-DeltaLedger',
+      instruction: 'As Board Recorder: verify the hash chain, filter by action type, and replay the board step by step.'
+    },
+    {
+      num: '08',
+      title: 'How ORBIT Tests for Failure',
+      viewId: 'VIEW-FailureTests',
+      instruction: 'As ORBIT Admin: click "Try a vote as Admin" and watch it get refused and logged. Click "Inject test glitch", read the two faults, and run a logged repair.'
+    }
+  ];
+
+  const fullSteps = [
     {
       num: '01',
       title: 'Command Center & 8-Phase Bar',
@@ -76,6 +129,7 @@ export const DemoGuideDrawer: React.FC<DemoGuideDrawerProps> = ({ open, onClose,
     }
   ];
   // Only steps for tools this role may open (permission table)
+  const allSteps = IS_MVP ? mvpSteps : fullSteps;
   const steps = allSteps.filter(st => canOpen(state.currentRole, st.viewId));
 
   return (

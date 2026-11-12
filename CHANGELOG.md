@@ -1,5 +1,13 @@
 # Changelog
 
+## mvp-scope (2026-11-11)
+- MVP scope build: one board (BRD-001) from data in to audit, served at `/mvp/` beside the full demo. Same source, data model, and rules; the scope hides tools, it does not fork them (`src/scope.ts`).
+- MVP tools, in board order: HELIOS Command, Candidate Queue, Panel Workspace, Panel Oversight, Scoring Audit, Board Statistics & Roles, DELTA Ledger, Failure Tests. Five roles: ORBIT Admin, BMO Lead, Board President, Panelist, Board Recorder.
+- New Failure Tests screen (MVP only): recorded results of the three gates, live health checks with logged repairs, record and file gates read from the metric registry, and decision-guard drills that write to DELTA.
+- Late files after record freeze (MVP only, DELTA Ledger screen): received, renamed, held at WARN, filed only after BMO Lead acceptance. Logged as `FILE_ROUTED` with `late: true`. No type changes.
+- `npm run build` now builds both; `npm run build:mvp`, `npm run dev:mvp`, and `npm run gates:record` added.
+- Tests: 8 unit tests and 6 acceptance tests added. The full demo is unchanged.
+
 ## cloudflare-host 0.7.0 (2026-10-28)
 - One permission table (`src/auth/permissions.ts`) drives the menu, in-page links, Catalog, Demo Guide, and the Field Guide table. A role is never offered a tool it cannot open.
 - ORBIT Admin role (DEV-ADMIN-01): sees every tool and record; Access Admin page with diagnostics and logged repairs, role requests (BMO Lead approves, no self-changes, 24-hour temporary access), board seating (one President per board), and access review. No vote or board decision: refused and logged (`ADMIN_NO_DECISION`).

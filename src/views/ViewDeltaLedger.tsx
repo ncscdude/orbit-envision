@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { useOrbit } from '../state/context';
 import { verifyChain } from '../state/delta';
 import { RequireRole } from '../auth/RequireRole';
+import { LateFilePanel } from '../components/LateFilePanel';
+import { IS_MVP } from '../scope';
 import {
   ShieldCheck,
   ShieldAlert,
@@ -334,6 +336,9 @@ const ViewDeltaLedgerContent: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* MVP build: late files after record freeze (not shown to the Panelist) */}
+      {IS_MVP && !ownOnly && <LateFilePanel />}
 
       {/* ORBIT-NIPR File Canonicalizer (00SRT Gate) */}
       <div className="bg-[#0a1020] border border-[#1e2d45] rounded-md p-5 space-y-4 shadow-xl">
