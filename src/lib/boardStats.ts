@@ -5,6 +5,7 @@
  */
 
 import { AppState, BoardStatistics, BoardRolePermission, Role } from '../types';
+import { sourceAgeById } from './sourceFreshness';
 
 /**
  * Computes detailed operational and scoring statistics for any individual board (every BRD cycle).
@@ -43,7 +44,8 @@ export function computeBoardStatistics(boardId: string, state: AppState): BoardS
 
       // Packet Readiness
       if (c.packetReadiness.eligibility) eligibleCount++;
-      if (c.packetReadiness.documents) docsCompleteCount++;
+      // Same definition as M-504 and the Candidate Queue: the whole packet is complete.
+      if (c.packetReadiness.complete) docsCompleteCount++;
       if (c.packetReadiness.exceptions.length > 0) {
         exceptionsCount += c.packetReadiness.exceptions.length;
       }
@@ -193,11 +195,13 @@ export function computeBoardStatistics(boardId: string, state: AppState): BoardS
   const scribesAssigned = staff.some(s => s.role === 'Scribe' && s.assigned) || true;
 
   // Source Freshness Status
+  const ageOf = (id: string) => sourceAgeById(state.sources, id);
+  const hrs = (id: string) => Number((ageOf(id)?.hours ?? 0).toFixed(1));
   const sourceFreshness = {
-    arms: { lastSyncHoursAgo: 5, status: 'green' as const },
-    milpds: { lastSyncHoursAgo: 32, status: 'amber' as const },
-    myvector: { lastSyncHoursAgo: 1, status: 'green' as const },
-    surf: { lastSyncDaysAgo: 8.5, status: 'red' as const }
+    arms: { lastSyncHoursAgo: hrs('ARMS'), status: ageOf('ARMS')?.status ?? ('green' as const) },
+    milpds: { lastSyncHoursAgo: hrs('MilPDS'), status: ageOf('MilPDS')?.status ?? ('green' as const) },
+    myvector: { lastSyncHoursAgo: hrs('MyVector'), status: ageOf('MyVector')?.status ?? ('green' as const) },
+    surf: { lastSyncDaysAgo: Number((hrs('SURF') / 24).toFixed(1)), status: ageOf('SURF')?.status ?? ('green' as const) }
   };
 
   const scoringPacePerHour = 14.5;

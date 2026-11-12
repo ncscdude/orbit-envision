@@ -5,6 +5,7 @@
  */
 
 import { AppState, MetricDef, MetricValue } from '../types';
+import { sourceAgeById } from '../lib/sourceFreshness';
 
 export const METRIC_REGISTRY: Record<string, MetricDef> = {
   // M-101: Records Processed Today
@@ -213,12 +214,14 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     thresholds: { amber: 12, red: 24, direction: 'above' },
     owner: 'Integration Lead',
     sourceRef: 'ARMS Pipeline Gateway',
-    compute: (_s: AppState): MetricValue => {
+    compute: (s: AppState): MetricValue => {
+      const a = sourceAgeById(s.sources, 'ARMS');
+      if (!a) return { raw: 0, formatted: 'n/a', status: 'neutral', tooltip: 'Source not loaded.' };
       return {
-        raw: 5.2,
-        formatted: '5.2h ago',
-        status: 'green',
-        tooltip: 'Aviation Resource Management system sync age. Thresholds: Amber >12h, Red >24h.'
+        raw: Number(a.hours.toFixed(1)),
+        formatted: `${a.text} ago`,
+        status: a.status,
+        tooltip: `Aviation Resource Management system sync age. Age ${a.text}, measured from last sync to the data snapshot time. Thresholds: ${a.limits}.`
       };
     }
   },
@@ -231,12 +234,14 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     thresholds: { amber: 24, red: 48, direction: 'above' },
     owner: 'Data Engineer',
     sourceRef: 'MilPDS Service Gateway',
-    compute: (_s: AppState): MetricValue => {
+    compute: (s: AppState): MetricValue => {
+      const a = sourceAgeById(s.sources, 'MilPDS');
+      if (!a) return { raw: 0, formatted: 'n/a', status: 'neutral', tooltip: 'Source not loaded.' };
       return {
-        raw: 32.5,
-        formatted: '32.5h ago',
-        status: 'amber',
-        tooltip: 'Military Personnel Data System sync age (32.5h) exceeds amber threshold (24h). Red at 48h.'
+        raw: Number(a.hours.toFixed(1)),
+        formatted: `${a.text} ago`,
+        status: a.status,
+        tooltip: `Military Personnel Data System sync age. Age ${a.text}, measured from last sync to the data snapshot time. Thresholds: ${a.limits}.`
       };
     }
   },
@@ -249,12 +254,14 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     thresholds: { amber: 24, red: 72, direction: 'above' },
     owner: 'BMO Lead',
     sourceRef: 'MyVector Talent Portal Gateway',
-    compute: (_s: AppState): MetricValue => {
+    compute: (s: AppState): MetricValue => {
+      const a = sourceAgeById(s.sources, 'MyVector');
+      if (!a) return { raw: 0, formatted: 'n/a', status: 'neutral', tooltip: 'Source not loaded.' };
       return {
-        raw: 0.2,
-        formatted: '12m ago',
-        status: 'green',
-        tooltip: 'MyVector Statement of Intent sync age. Thresholds: Amber >24h, Red >72h.'
+        raw: Number(a.hours.toFixed(1)),
+        formatted: `${a.text} ago`,
+        status: a.status,
+        tooltip: `MyVector Statement of Intent sync age. Age ${a.text}, measured from last sync to the data snapshot time. Thresholds: ${a.limits}.`
       };
     }
   },
@@ -267,12 +274,14 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     thresholds: { amber: 1.0, red: 7.0, direction: 'above' },
     owner: 'Integration Lead',
     sourceRef: 'SURF Central Registry',
-    compute: (_s: AppState): MetricValue => {
+    compute: (s: AppState): MetricValue => {
+      const a = sourceAgeById(s.sources, 'SURF');
+      if (!a) return { raw: 0, formatted: 'n/a', status: 'neutral', tooltip: 'Source not loaded.' };
       return {
-        raw: 8.5,
-        formatted: '8.5 days ago',
-        status: 'red',
-        tooltip: 'Single Unified Record File extract age (8.5 days) exceeds 7-day hard threshold. Affects PDO-008.'
+        raw: Number((a.hours / 24).toFixed(1)),
+        formatted: `${a.text} ago`,
+        status: a.status,
+        tooltip: `Single Unified Record File extract age. Age ${a.text}, measured from last sync to the data snapshot time. Thresholds: ${a.limits}.`
       };
     }
   },

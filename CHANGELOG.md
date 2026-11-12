@@ -7,6 +7,7 @@
 - Late files after record freeze (MVP only, DELTA Ledger screen): received, renamed, held at WARN, filed only after BMO Lead acceptance. Logged as `FILE_ROUTED` with `late: true`. No type changes.
 - `npm run build` now builds both; `npm run build:mvp`, `npm run dev:mvp`, and `npm run gates:record` added.
 - Tests: 8 unit tests and 6 acceptance tests added. The full demo is unchanged.
+- 2026-11-12: Source age now comes from one function (`src/lib/sourceFreshness.ts`), measured to the data snapshot time, so HELIOS Command, Panel Oversight, Panel Workspace, Board Statistics and metrics M-301 to M-304 show the same value and status. Packet completeness on Board Statistics now uses the M-504 definition (whole packet complete), so it matches HELIOS Command and Failure Tests. 2 unit tests added.
 
 ## cloudflare-host 0.7.0 (2026-10-28)
 - One permission table (`src/auth/permissions.ts`) drives the menu, in-page links, Catalog, Demo Guide, and the Field Guide table. A role is never offered a tool it cannot open.

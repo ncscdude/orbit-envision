@@ -8,6 +8,7 @@ import { RequireRole } from '../auth/RequireRole';
 import { aiVisible, canReadChat, canScore, getMyScore, hiddenNote } from '../lib/panel';
 import { PanelChat } from '../components/PanelChat';
 import { FullTextReader, ReaderTab } from '../components/FullTextReader';
+import { sourceAgeById } from '../lib/sourceFreshness';
 import {
   FileText,
   Award,
@@ -363,7 +364,7 @@ const ViewPanelReviewContent: React.FC = () => {
                 <div className="grid grid-cols-2 gap-2 text-xs font-mono">
                   <div className="p-1.5 bg-[#05080f] border border-[#1e2d45] rounded">
                     <span className="text-[10px] text-slate-400 block">ARMS Sync:</span>
-                    <span className="text-emerald-400">5.2h ago</span>
+                    <span className="text-emerald-400">{sourceAgeById(state.sources, 'ARMS')?.text ?? 'n/a'} ago</span>
                   </div>
                   <div className="p-1.5 bg-[#05080f] border border-[#1e2d45] rounded">
                     <span className="text-[10px] text-slate-400 block">SURF Sync:</span>

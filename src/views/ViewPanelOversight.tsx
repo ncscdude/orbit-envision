@@ -13,6 +13,7 @@ import { AiBadge } from '../components/AiBadge';
 import { AI_FIELDS, AI_TIMINGS, DEFAULT_AI_VISIBILITY, panelOversight, scoreKeyFor } from '../lib/panel';
 import { AiTiming, AiVisibility } from '../types';
 import { Users, Eye, RotateCcw, FileWarning, Database, Save } from 'lucide-react';
+import { sourceAge, DATA_AS_OF } from '../lib/sourceFreshness';
 
 const ViewPanelOversightContent: React.FC = () => {
   const { state, dispatch } = useOrbit();
@@ -41,8 +42,6 @@ const ViewPanelOversightContent: React.FC = () => {
   const [issueRecord, setIssueRecord] = useState('');
   const [issueText, setIssueText] = useState('');
 
-  const now = Date.now();
-  const hoursAgo = (iso: string) => Math.max(0, Math.round((now - new Date(iso).getTime()) / 3600000));
 
   return (
     <div className="space-y-5 max-w-7xl mx-auto pb-10 text-xs">
@@ -259,19 +258,19 @@ const ViewPanelOversightContent: React.FC = () => {
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           {state.sources.map(src => {
-            const h = hoursAgo(src.lastSyncAt);
-            const tone = h > 168 ? 'text-red-300' : h > 24 ? 'text-amber-300' : 'text-emerald-300';
+            const age = sourceAge(src);
+            const tone = age.status === 'red' ? 'text-red-300' : age.status === 'amber' ? 'text-amber-300' : 'text-emerald-300';
             return (
               <div key={src.id} className="bg-[#05080f] border border-[#1e2d45] rounded p-2">
                 <div className="font-mono text-white">{src.id}</div>
-                <div className={`font-mono ${tone}`}>{h}h since last sync</div>
+                <div className={`font-mono ${tone}`}>{age.text} since last sync</div>
                 <div className="text-[10px] text-slate-500">{src.authoritativeSource}</div>
               </div>
             );
           })}
         </div>
         <p className="text-slate-400">
-          Packet exceptions on this board: <strong className="text-white">{exceptions.length}</strong>. The BMO Lead clears them in HELIOS Command; report anything else above.
+          Packet exceptions on this board: <strong className="text-white">{exceptions.length}</strong>. The BMO Lead clears them in HELIOS Command; report anything else above. Source age is measured to the data snapshot time ({DATA_AS_OF}), the same clock HELIOS Command uses.
         </p>
       </section>
     </div>

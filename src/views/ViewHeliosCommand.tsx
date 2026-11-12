@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts';
 import { RequireRole } from '../auth/RequireRole';
+import { sourceAge, FRESHNESS_LIMITS } from '../lib/sourceFreshness';
 
 const ViewHeliosCommandContent: React.FC = () => {
   const { state, dispatch, useMetric } = useOrbit();
@@ -386,32 +387,19 @@ const ViewHeliosCommandContent: React.FC = () => {
             {/* Source Pipelines Table */}
             <div className="space-y-3">
               {state.sources.map(src => {
-                let ageText = '5.2h';
-                let statusColor = 'bg-emerald-500';
-                let statusPill = 'FRESH';
-                let pillClass = 'bg-emerald-950 text-emerald-300 border-emerald-800';
-                let thresholdText = 'Amber > 12h, Red > 24h';
-                let barPct = 25;
-
-                if (src.id === 'MilPDS') {
-                  ageText = '32.5h';
-                  statusColor = 'bg-amber-500';
-                  statusPill = 'AMBER STALE';
-                  pillClass = 'bg-amber-950 text-amber-300 border-amber-800 animate-pulse';
-                  thresholdText = 'Amber > 24h, Red > 48h';
-                  barPct = 65;
-                } else if (src.id === 'SURF') {
-                  ageText = '8.5 days';
-                  statusColor = 'bg-red-500';
-                  statusPill = 'RED CRITICAL';
-                  pillClass = 'bg-red-950 text-red-300 border-red-800 animate-pulse font-bold';
-                  thresholdText = 'Amber > 1d, Red > 7d';
-                  barPct = 95;
-                } else if (src.id === 'MyVector') {
-                  ageText = '12 min';
-                  barPct = 10;
-                  thresholdText = 'Amber > 24h, Red > 72h';
-                }
+                const age = sourceAge(src);
+                const ageText = age.text;
+                const thresholdText = age.limits;
+                const lim = FRESHNESS_LIMITS[src.id];
+                const barPct = Math.max(4, Math.min(100, Math.round((age.hours / (lim.red * 1.1)) * 100)));
+                const statusColor = age.status === 'red' ? 'bg-red-500' : age.status === 'amber' ? 'bg-amber-500' : 'bg-emerald-500';
+                const statusPill = age.status === 'red' ? 'RED CRITICAL' : age.status === 'amber' ? 'AMBER STALE' : 'FRESH';
+                const pillClass =
+                  age.status === 'red'
+                    ? 'bg-red-950 text-red-300 border-red-800 animate-pulse font-bold'
+                    : age.status === 'amber'
+                      ? 'bg-amber-950 text-amber-300 border-amber-800 animate-pulse'
+                      : 'bg-emerald-950 text-emerald-300 border-emerald-800';
 
                 const isSelected = selectedSourceId === src.id;
 
