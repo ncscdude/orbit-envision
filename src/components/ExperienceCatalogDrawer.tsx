@@ -3,6 +3,7 @@ import { X, Layers, HelpCircle, CheckCircle2, Clock } from 'lucide-react';
 import { EXPERIENCES, ASSUMPTIONS_AND_QUESTIONS, BUILT_NEXT_IDS } from '../registry/experiences';
 import { useOrbit } from '../state/context';
 import { canOpen } from '../auth/permissions';
+import { IS_MVP } from '../scope';
 
 interface ExperienceCatalogDrawerProps {
   open: boolean;
@@ -21,6 +22,8 @@ export const ExperienceCatalogDrawer: React.FC<ExperienceCatalogDrawerProps> = (
   // Only the tools this role may open (permission table)
   const live = EXPERIENCES.filter(e => e.status === 'Live' && canOpen(state.currentRole, e.viewId));
   const roadmap = EXPERIENCES.filter(e => e.status === 'Roadmap');
+  // Tools that are live in this build but closed to this role by the permission table.
+  const closed = EXPERIENCES.filter(e => e.status === 'Live' && !canOpen(state.currentRole, e.viewId));
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-xs transition-opacity">
@@ -79,19 +82,27 @@ export const ExperienceCatalogDrawer: React.FC<ExperienceCatalogDrawerProps> = (
             </div>
           </div>
 
+          {closed.length > 0 && (
+            <p className="text-slate-400 text-[11px] p-3 border border-dashed border-[#1e2d45] rounded" data-testid="catalog-closed">
+              {state.currentRole} opens {live.length} of {live.length + closed.length} live tools. Closed to this role by the permission table:{' '}
+              <span className="text-slate-300">{closed.map(e => e.title).join(', ')}</span>.
+            </p>
+          )}
+
           {/* Roadmap Section */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="font-semibold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-amber-400" /> Roadmap Backlog ({roadmap.length})
+                <Clock className="w-3.5 h-3.5 text-amber-400" /> {IS_MVP ? 'Not in the MVP' : 'Roadmap Backlog'} ({roadmap.length})
               </span>
-              <span className="text-[11px] text-slate-400">Proposed / Pending approval</span>
+              <span className="text-[11px] text-slate-400">{IS_MVP ? 'Cannot be opened here' : 'Proposed / Pending approval'}</span>
             </div>
             <div className="space-y-2">
               {roadmap.map(exp => (
                 <div
                   key={exp.id}
-                  className="p-3 bg-[#05080f]/60 border border-[#1e2d45]/70 rounded opacity-80"
+                  className="p-3 bg-[#05080f]/60 border border-[#1e2d45]/70 rounded opacity-80 cursor-not-allowed"
+                  title="Not in this build, so it cannot be opened here"
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-semibold text-slate-300 text-xs">{exp.title}</span>

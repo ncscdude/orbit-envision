@@ -115,3 +115,18 @@ test('the full demo is unchanged: no MVP badge and no Failure Tests tab', async 
   await expect(page.locator('nav')).not.toContainText('Failure Tests');
   await expect(page.getByRole('heading', { name: /ORBIT Command Center/ })).toBeVisible();
 });
+
+test('Panelist: Catalog opens its four tools, names the closed ones, and the Demo Guide shows only Panelist steps', async ({ page }) => {
+  await page.goto(MVP);
+  await switchRole(page, 'Panelist');
+  await expect(page.locator('nav button')).toHaveCount(4);
+  await page.getByRole('button', { name: /Catalog/ }).click();
+  await expect(page.getByTestId('catalog-closed')).toContainText('Panelist opens 4 of 8 live tools');
+  await expect(page.getByTestId('catalog-closed')).toContainText('HELIOS Command');
+  await page.getByText('Panel Workspace', { exact: true }).last().click();
+  await expect(page.getByText('Experience Catalog & Architecture')).toHaveCount(0);
+  await page.getByRole('button', { name: /Demo Guide/ }).click();
+  await expect(page.getByText('A Person Scores the Record')).toBeVisible();
+  await expect(page.getByText('Late File After Record Freeze')).toHaveCount(0);
+  await expect(page.getByTestId('guide-other-roles')).toContainText('7 more steps');
+});

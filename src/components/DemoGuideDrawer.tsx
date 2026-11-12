@@ -2,6 +2,7 @@ import React from 'react';
 import { useOrbit } from '../state/context';
 import { canOpen } from '../auth/permissions';
 import { IS_MVP } from '../scope';
+import type { Role } from '../types';
 import { X, BookOpen, ArrowRight } from 'lucide-react';
 
 interface DemoGuideDrawerProps {
@@ -18,48 +19,56 @@ export const DemoGuideDrawer: React.FC<DemoGuideDrawerProps> = ({ open, onClose,
   const mvpSteps = [
     {
       num: '01',
+      role: 'BMO Lead' as Role,
       title: 'Data In: Pipeline Gates & Source Freshness',
       viewId: 'VIEW-HeliosCommand',
       instruction: 'As BMO Lead: locate the failed ingest on PDO-015 and click "Retry". Then read the source freshness bars: MilPDS is amber and SURF is red.'
     },
     {
       num: '02',
+      role: 'BMO Lead' as Role,
       title: 'Late File After Record Freeze',
       viewId: 'VIEW-DeltaLedger',
       instruction: 'As BMO Lead: under Late Files After Record Freeze, pick a record and click "Receive Late File". It is renamed and held at WARN. Click "Accept and File", then find both steps in the ledger above.'
     },
     {
       num: '03',
+      role: 'Board President' as Role,
       title: 'President Sets What the Panel Sees From AI',
       viewId: 'VIEW-PanelOversight',
       instruction: 'As Board President: set when panel members see each AI item (Before, During, After, or Off) and save. The change is logged.'
     },
     {
       num: '04',
+      role: 'Panelist' as Role,
       title: 'A Person Scores the Record',
       viewId: 'VIEW-PanelReview',
       instruction: 'As Panelist: open PDO-001. The model score and panel average stay hidden until you select a score and submit. Review the AI summary and sign it off.'
     },
     {
       num: '05',
+      role: 'Board President' as Role,
       title: 'Divergent Scores Reviewed',
       viewId: 'VIEW-ScoringAudit',
       instruction: 'As Board President: review records where a score sits 1.5 or more points from the panel average, and adjudicate one.'
     },
     {
       num: '06',
+      role: 'BMO Lead' as Role,
       title: 'Lock the Population & Certify the Order of Merit',
       viewId: 'VIEW-BoardDetail',
       instruction: 'As BMO Lead: read the board stage gates and packet check, then lock the population and certify the Order of Merit when the gates allow.'
     },
     {
       num: '07',
+      role: 'Board Recorder' as Role,
       title: 'Every Action in the DELTA Ledger',
       viewId: 'VIEW-DeltaLedger',
       instruction: 'As Board Recorder: verify the hash chain, filter by action type, and replay the board step by step.'
     },
     {
       num: '08',
+      role: 'ORBIT Admin' as Role,
       title: 'How ORBIT Tests for Failure',
       viewId: 'VIEW-FailureTests',
       instruction: 'As ORBIT Admin: click "Try a vote as Admin" and watch it get refused and logged. Click "Inject test glitch", read the two faults, and run a logged repair.'
@@ -129,8 +138,11 @@ export const DemoGuideDrawer: React.FC<DemoGuideDrawerProps> = ({ open, onClose,
     }
   ];
   // Only steps for tools this role may open (permission table)
-  const allSteps = IS_MVP ? mvpSteps : fullSteps;
-  const steps = allSteps.filter(st => canOpen(state.currentRole, st.viewId));
+  // MVP: each step is done by one role, so show only this role's steps. Full demo: steps for tools this role may open.
+  const steps = IS_MVP
+    ? mvpSteps.filter(st => st.role === state.currentRole)
+    : fullSteps.filter(st => canOpen(state.currentRole, st.viewId));
+  const otherRoleSteps = IS_MVP ? mvpSteps.length - steps.length : 0;
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-xs transition-opacity">
@@ -180,6 +192,11 @@ export const DemoGuideDrawer: React.FC<DemoGuideDrawerProps> = ({ open, onClose,
               <p className="text-slate-300 leading-relaxed text-[11px]">{s.instruction}</p>
             </div>
           ))}
+          {otherRoleSteps > 0 && (
+            <p className="text-slate-400 text-[11px] p-3 border border-dashed border-[#1e2d45] rounded" data-testid="guide-other-roles">
+              {otherRoleSteps} more steps belong to other roles. Switch role with the Perspective menu to see them.
+            </p>
+          )}
         </div>
       </div>
     </div>
