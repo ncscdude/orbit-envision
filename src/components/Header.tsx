@@ -52,7 +52,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCatalog, onOpenDemoGuide }
                   PROJECT ORBIT
                 </span>
                 <span className="font-mono text-[10px] text-cyan-400 bg-cyan-950/80 px-1.5 py-0.5 rounded border border-cyan-800">
-                  v4.2-HELIOS
+                  v0.8.0-HELIOS
                 </span>
                 {IS_MVP && (
                   <span className="font-mono text-[10px] text-amber-300 bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-700" data-testid="mvp-badge">

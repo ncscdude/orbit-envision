@@ -1,6 +1,6 @@
 # Changelog
 
-## mvp-scope (2026-11-11)
+## 0.8.0 · mvp-scope (2026-11-12)
 - MVP scope build: one board (BRD-001) from data in to audit, served at `/mvp/` beside the full demo. Same source, data model, and rules; the scope hides tools, it does not fork them (`src/scope.ts`).
 - MVP tools, in board order: HELIOS Command, Candidate Queue, Panel Workspace, Panel Oversight, Scoring Audit, Board Statistics & Roles, DELTA Ledger, Failure Tests. Five roles: ORBIT Admin, BMO Lead, Board President, Panelist, Board Recorder.
 - New Failure Tests screen (MVP only): recorded results of the three gates, live health checks with logged repairs, record and file gates read from the metric registry, and decision-guard drills that write to DELTA.
