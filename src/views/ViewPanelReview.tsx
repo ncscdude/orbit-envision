@@ -433,7 +433,10 @@ const ViewPanelReviewContent: React.FC = () => {
             <div className="bg-[#0a1020] border border-[#1e2d45] rounded-md p-4 space-y-3">
               <h3 className="font-semibold text-white text-sm">Command & Duty Chronology</h3>
               <div className="space-y-2">
-                {candidate.timeline.map((item, idx) => (
+                {(candidate.timeline ?? []).length === 0 && (
+                  <p className="text-slate-400 text-xs font-mono" data-testid="no-duty-history">No duty history is loaded for this record.</p>
+                )}
+                {(candidate.timeline ?? []).map((item, idx) => (
                   <div key={idx} className="p-3 bg-[#05080f] border border-[#1e2d45] rounded text-xs flex justify-between">
                     <div>
                       <span className="font-semibold text-white">{item.role}</span>

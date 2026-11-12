@@ -1766,7 +1766,8 @@ export function generateRemainingCandidates(): Candidate[] {
 }
 
 export const ALL_CANDIDATES_SEED: Candidate[] = [
-  ...(HANDWRITTEN_CANDIDATES as Candidate[]),
+  // Hand-written records carry no duty history; give them an empty list so every lens can read it.
+  ...(HANDWRITTEN_CANDIDATES as Candidate[]).map(c => ({ ...c, timeline: c.timeline ?? [] })),
   ...generateRemainingCandidates()
 ];
 

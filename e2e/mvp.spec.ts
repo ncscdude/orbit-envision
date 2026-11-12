@@ -130,3 +130,17 @@ test('Panelist: Catalog opens its four tools, names the closed ones, and the Dem
   await expect(page.getByText('Late File After Record Freeze')).toHaveCount(0);
   await expect(page.getByTestId('guide-other-roles')).toContainText('7 more steps');
 });
+
+for (const base of [MVP, '/']) {
+  test(`all eight lenses open without an error on the first record (${base})`, async ({ page }) => {
+    const w = watch(page);
+    await page.goto(base);
+    await page.locator('nav').getByRole('button', { name: /Panel Workspace/ }).click();
+    for (const lens of ['Skills & Competencies', 'Experience & Command', 'Performance (ROPs)', 'Education & PME', 'Predictive & Drivers', 'Narrative & SOI', 'Eligibility & Freshness', 'Overview (4-Panel)']) {
+      await page.locator('main').getByRole('button', { name: lens }).click();
+      await expect(page.locator('nav button').first()).toBeVisible();
+      await expect(page.getByText(/^Lens \d:/)).toBeVisible();
+    }
+    expect(w.errors).toEqual([]);
+  });
+}
