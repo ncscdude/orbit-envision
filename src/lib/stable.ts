@@ -155,7 +155,7 @@ export function runGreedyMatching(
     matches,
     candidateTop3PreferenceCount: candidateTop3Count,
     totalBilletsFilled: matches.length,
-    blockingPairsCount: Math.min(blockingPairs, 4), // bounded count for realistic comparison
+    blockingPairsCount: blockingPairs,
     algorithm: 'greedy'
   };
 }

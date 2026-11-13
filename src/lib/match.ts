@@ -4,6 +4,7 @@
 
 import { Candidate, Billet, MatchPair, MatchScenarioWeights } from '../types';
 import { cosineSimilarity } from './stats';
+import { runGreedyMatching } from './stable';
 
 export const DEFAULT_WEIGHTS: MatchScenarioWeights = {
   oomRank: 0.60,
@@ -171,7 +172,8 @@ export function computeSensitivityHolds(
 
   for (let iter = 0; iter < iterations; iter++) {
     // Perturb weights by +/- 10%
-    const perturb = (w: number) => Math.max(0.01, w * (0.90 + Math.random() * 0.20));
+    // A weight the user set to zero stays zero; the others move +/- 10%.
+    const perturb = (w: number) => (w === 0 ? 0 : w * (0.90 + Math.random() * 0.20));
     const perturbedWeights: MatchScenarioWeights = {
       oomRank: perturb(baseWeights.oomRank),
       soiOverlap: perturb(baseWeights.soiOverlap),
@@ -183,31 +185,12 @@ export function computeSensitivityHolds(
 
     const matrix = generateAllCandidateBilletScores(candidates, billets, perturbedWeights);
 
-    // Check which matches would hold if assigned greedily by OoM under these perturbed weights
-    const assignedBillets = new Set<string>();
-    const assignedCandidates = new Set<string>();
-
+    // Rerun the same greedy assignment under the perturbed weights and count which pairs survive.
+    const rerun = runGreedyMatching(candidates, billets, toScoreMatrix(matrix));
+    const kept = new Set(rerun.matches.map(r => `${r.candidateId}_${r.billetId}`));
     for (const m of matches) {
-      const bScores = matrix[m.billetId];
-      if (!bScores) continue;
-
-      let topCand = '';
-      let topScore = -1;
-
-      for (const [candId, scoreComp] of Object.entries(bScores)) {
-        if (assignedCandidates.has(candId)) continue;
-        if (scoreComp.totalScore > topScore) {
-          topScore = scoreComp.totalScore;
-          topCand = candId;
-        }
-      }
-
-      if (topCand === m.candidateId && !assignedBillets.has(m.billetId)) {
-        matchHoldCounts[`${m.candidateId}_${m.billetId}`] =
-          (matchHoldCounts[`${m.candidateId}_${m.billetId}`] || 0) + 1;
-      }
-      assignedBillets.add(m.billetId);
-      assignedCandidates.add(m.candidateId);
+      const key = `${m.candidateId}_${m.billetId}`;
+      if (kept.has(key)) matchHoldCounts[key] = (matchHoldCounts[key] || 0) + 1;
     }
   }
 

@@ -64,6 +64,17 @@ const ViewMatchLabContent: React.FC = () => {
     return runGreedyMatching(state.candidates, state.billets, toScoreMatrix(matrix));
   }, [state.candidates, state.billets, matrix]);
 
+  // Live rerank differential: the sandbox scenario (current weights) against the official proposal.
+  const rerankDiff = useMemo(() => {
+    const scenario = state.sandboxMatches.length > 0 ? state.sandboxMatches : state.officialMatches;
+    const officialBy = new Map(state.officialMatches.map(m => [m.candidateId, m.billetId]));
+    const moved = scenario.filter(m => officialBy.get(m.candidateId) !== m.billetId).length;
+    const critical = state.billets.filter(b => b.priority === 'Critical');
+    const criticalFilled = critical.filter(b => scenario.some(m => m.billetId === b.id)).length;
+    const top3 = (ms: MatchPair[]) => ms.filter(m => state.candidates.find(c => c.id === m.candidateId)?.soi.preferences.billetIds.slice(0, 3).includes(m.billetId)).length;
+    return { moved, critical: critical.length, criticalFilled, top3Scenario: top3(scenario), top3Official: top3(state.officialMatches), total: scenario.length };
+  }, [state.sandboxMatches, state.officialMatches, state.billets, state.candidates]);
+
   // Contention detection: candidates top-matched to >= 2 billets
   const candidateAssignedCounts: Record<string, number> = {};
   currentMatches.forEach(m => {
@@ -482,15 +493,15 @@ DRAFT MEMORANDUM // FOR OFFICIAL USE ONLY // NOT FOR OPERATIONAL RELEASE`;
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
               <div className="p-3 bg-[#05080f] border border-[#1e2d45] rounded">
                 <span className="text-[10px] text-slate-400 uppercase font-mono block">Candidates Re-routed</span>
-                <span className="text-xl font-bold font-mono text-white">4 moved</span>
+                <span className="text-xl font-bold font-mono text-white">{rerankDiff.moved} moved</span>
               </div>
               <div className="p-3 bg-[#05080f] border border-[#1e2d45] rounded">
                 <span className="text-[10px] text-slate-400 uppercase font-mono block">Critical Billets Filled</span>
-                <span className="text-xl font-bold font-mono text-emerald-400">100% (4/4 filled)</span>
+                <span className="text-xl font-bold font-mono text-emerald-400">{rerankDiff.critical ? Math.round((rerankDiff.criticalFilled / rerankDiff.critical) * 100) : 100}% ({rerankDiff.criticalFilled}/{rerankDiff.critical} filled)</span>
               </div>
               <div className="p-3 bg-[#05080f] border border-[#1e2d45] rounded">
-                <span className="text-[10px] text-slate-400 uppercase font-mono block">Overall Preference Gain</span>
-                <span className="text-xl font-bold font-mono text-purple-300">+18% Satisfaction</span>
+                <span className="text-[10px] text-slate-400 uppercase font-mono block">Top-3 Preference Met (vs official)</span>
+                <span className="text-xl font-bold font-mono text-purple-300">{rerankDiff.top3Scenario} of {rerankDiff.total} ({rerankDiff.top3Scenario - rerankDiff.top3Official >= 0 ? '+' : ''}{rerankDiff.top3Scenario - rerankDiff.top3Official})</span>
               </div>
             </div>
           </div>

@@ -145,8 +145,13 @@ export function createInitialState(): AppState {
     isAiProposed: idx < 3, // Top 20% machine matched
     approved: idx === 0, // 1 pre-approved
     overridden: false,
-    fragilityPercent: 88
+    fragilityPercent: 0
   }));
+  // Fragility comes from a real run: 200 perturbations of the weights, +/- 10% each.
+  const initialHolds = computeSensitivityHolds(ALL_CANDIDATES_SEED, BILLETS_SEED, DEFAULT_WEIGHTS, officialMatches, 200);
+  officialMatches.forEach(m => {
+    m.fragilityPercent = initialHolds[`${m.candidateId}_${m.billetId}`] ?? 0;
+  });
 
   // Initial DELTA entries
   const initialLedger: DeltaEntry[] = [];
@@ -707,9 +712,9 @@ export function appReducer(state: AppState, action: Action): AppState {
       }));
 
       // Compute sensitivity holds
-      const holds = computeSensitivityHolds(state.candidates, state.billets, action.weights, newMatches, 50);
+      const holds = computeSensitivityHolds(state.candidates, state.billets, action.weights, newMatches, 200);
       newMatches.forEach(m => {
-        m.fragilityPercent = holds[`${m.candidateId}_${m.billetId}`] || 80;
+        m.fragilityPercent = holds[`${m.candidateId}_${m.billetId}`] ?? 0;
       });
 
       return {

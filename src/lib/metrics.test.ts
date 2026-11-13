@@ -82,3 +82,12 @@ test('runGaleShapleyMatching produces stable pairings with 0 blocking pairs', ()
   assert.equal(res.blockingPairsCount, 0);
   assert.equal(res.matches.length, 5);
 });
+
+test('official match fragility comes from the perturbation run, not a fixed placeholder', async () => {
+  const { createInitialState } = await import('../state/reducer');
+  const s = createInitialState();
+  assert.ok(s.officialMatches.length > 0);
+  for (const m of s.officialMatches) {
+    assert.ok(Number.isInteger(m.fragilityPercent) && m.fragilityPercent >= 0 && m.fragilityPercent <= 100, String(m.fragilityPercent));
+  }
+});

@@ -2,9 +2,9 @@
 import type { GateResults } from '../lib/gates';
 
 export const GATE_RESULTS: GateResults = {
-  "recordedAt": "2026-11-13T01:40:01.731Z",
+  "recordedAt": "2026-11-13T14:09:16.481Z",
   "branch": "mvp-scope",
-  "commit": "b0afa02",
+  "commit": "125628c",
   "lint": {
     "state": "passed",
     "errors": 0,
@@ -13,9 +13,9 @@ export const GATE_RESULTS: GateResults = {
   },
   "unit": {
     "state": "passed",
-    "passed": 76,
+    "passed": 77,
     "failed": 0,
-    "total": 76,
+    "total": 77,
     "files": [
       {
         "file": "src/auth/identity.test.ts",
@@ -64,7 +64,7 @@ export const GATE_RESULTS: GateResults = {
       },
       {
         "file": "src/lib/metrics.test.ts",
-        "passed": 6,
+        "passed": 7,
         "failed": 0
       },
       {
