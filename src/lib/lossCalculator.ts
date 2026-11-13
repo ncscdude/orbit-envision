@@ -422,7 +422,13 @@ export function calculateCapabilityDegradation(
 
   const m601RiskTier = profile.riskOfLoss;
   const m602ImpactTier = candidate.talent?.impactOfLoss || 'Medium';
-  const compositeFormula = `Degradation Index = [0.65 × M-602 (${impactScore}) + 0.35 × M-601 (${profile.flightRiskScore})] × Scarcity (${isKeyTalent ? '1.35x' : '1.10x'}) = -${degradationPct.toFixed(1)}%`;
+  // Shows the rule exactly as it is computed above: fixed points, not a fitted model.
+  const parts = [
+    `${candidate.talent?.impactOfLoss === 'High' ? '17.5 (high impact of loss)' : '8.5 (base)'}`,
+    ...(isKeyTalent ? ['5.5 (Key Talent)'] : []),
+    ...(profile.successionExposure.isCriticalSuccessor ? ['4.5 (critical successor)'] : [])
+  ];
+  const compositeFormula = `Degradation rule = ${parts.join(' + ')} = -${degradationPct.toFixed(1)}%. Fixed points, not a fitted model.`;
   const matchingBillet = billets.find(b => b.dafscRequired.includes(candidate.dafsc));
 
   return {
