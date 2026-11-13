@@ -128,7 +128,7 @@ const ViewMatchLabContent: React.FC = () => {
 FROM: USSF Enterprise Talent Management Office (ETMO / BMO)
 SUBJECT: Personnel Services Delivery Memorandum (PSDM) — CY26 ILE & Senior Space Slating Selection
 
-1. AUTHORITY: In accordance with Space Force Personnel Instructions (SPFI 36-2401) and approved Board Management Directive 2026-04, the following candidate assignments have been verified through human-in-the-loop review.
+1. AUTHORITY: In accordance with [governing instruction: set by HQSF/S1 before release] and the approved board directive, the following candidate assignments have been verified through human-in-the-loop review.
 
 2. APPROVED SLATING ASSIGNMENTS:
 ${currentMatches
