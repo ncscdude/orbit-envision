@@ -273,7 +273,7 @@ const ViewCrossAnalyticsContent: React.FC = () => {
         <div>
           <h3 className="font-bold text-white text-sm">Quadrant Scatter: Panel Consensus vs Algorithmic Fit</h3>
           <p className="text-xs text-cyan-400/90 italic font-mono mt-0.5">
-            Takeaway: Highlights 3 Hidden Talent candidates (low panel avg, high LLM fit) requiring evaluator re-examination.
+            Takeaway: {scatterData.filter(d => d.quadrant === 'Hidden Talent').length} Hidden Talent records (panel average under 8.0, LLM fit 80% or higher) to re-examine. Records with no scores yet plot at 8.0.
           </p>
         </div>
 

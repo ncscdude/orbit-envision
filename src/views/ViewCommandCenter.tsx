@@ -814,7 +814,7 @@ const ViewCommandCenterContent: React.FC = () => {
           <span className="font-mono text-xs font-semibold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
             <TrendingUp className="w-3.5 h-3.5" /> Board Health Forecast & Milestone Slippage Projection
           </span>
-          <span className="text-xs text-slate-400 font-mono">Linear Slippage Algorithm</span>
+          <span className="text-xs text-amber-400 font-mono">Sample projection: set by board status, no model yet</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">

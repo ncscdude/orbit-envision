@@ -2,9 +2,9 @@
 import type { GateResults } from '../lib/gates';
 
 export const GATE_RESULTS: GateResults = {
-  "recordedAt": "2026-11-13T01:28:28.578Z",
+  "recordedAt": "2026-11-13T01:40:01.731Z",
   "branch": "mvp-scope",
-  "commit": "46597e1",
+  "commit": "b0afa02",
   "lint": {
     "state": "passed",
     "errors": 0,
