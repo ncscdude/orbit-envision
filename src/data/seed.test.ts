@@ -22,3 +22,15 @@ test('every record has every list field a lens reads', () => {
   }
   assert.deepEqual(missing, []);
 });
+
+test('every milestone date is a real calendar date', async () => {
+  const { generateMilestones } = await import('./seed');
+  const bad = generateMilestones()
+    .flatMap(m => [m.planned, m.actual].filter((d): d is string => !!d))
+    .filter(d => {
+      const [y, mo, da] = d.split('-').map(Number);
+      const t = new Date(Date.UTC(y, mo - 1, da));
+      return t.getUTCMonth() !== mo - 1 || t.getUTCDate() !== da;
+    });
+  assert.deepEqual(bad, []);
+});

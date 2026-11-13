@@ -62,6 +62,18 @@ const ViewCrossAnalyticsContent: React.FC = () => {
     return computeZScoreNormalizedRankings(state.candidates, statsMap);
   }, [state.candidates, calibrationStats]);
 
+  // Takeaway is written from the computed stats, so the text and the badges always agree.
+  const calibrationTakeaway = useMemo(() => {
+    if (calibrationStats.length === 0) return 'Takeaway: no scores recorded yet.';
+    const n = calibrationStats.reduce((a, s) => a + s.count, 0);
+    const pool = calibrationStats.reduce((a, s) => a + s.mean * s.count, 0) / n;
+    const sorted = [...calibrationStats].sort((a, b) => a.mean - b.mean);
+    const lo = sorted[0];
+    const hi = sorted[sorted.length - 1];
+    const d = (x: number) => Math.abs(x - pool).toFixed(2);
+    return `Takeaway: ${lo.name} averages ${d(lo.mean)} pts below the pool mean of ${pool.toFixed(2)} (${lo.tendency}); ${hi.name} averages ${d(hi.mean)} pts above (${hi.tendency}). Harsh or Lenient means 0.4 pts or more from the pool mean.`;
+  }, [calibrationStats]);
+
   // Radar data for compared candidates (2 to 4)
   const comparedCandidates = state.candidates.filter(c => selectedCandidatesForCompare.includes(c.id));
   const radarData = [
@@ -425,7 +437,7 @@ const ViewCrossAnalyticsContent: React.FC = () => {
         </div>
 
         <p className="text-xs text-cyan-400/90 italic font-mono">
-          Takeaway: Lt Col Elena Rostova scores 0.5 pts below panel mean (Harsh), while Lt Col David Sterling averages 0.6 pts higher (Lenient).
+          {calibrationTakeaway}
         </p>
 
         {/* Panelist Calibration Cards */}

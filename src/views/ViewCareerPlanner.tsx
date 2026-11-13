@@ -115,9 +115,10 @@ const ViewCareerPlannerContent: React.FC = () => {
 
   // 3x3 N-Box Grid Setup: Performance by Potential
   const nBoxGrid = [
-    { row: 'High Potential', cells: ['Specialist / High Impact', 'High Potential', 'Key Talent'] },
-    { row: 'Medium Potential', cells: ['Solid Professional', 'Core Talent', 'High Potential'] },
-    { row: 'Low Potential', cells: ['Effective Contributor', 'Solid Professional', 'Core Talent'] }
+    // Nine distinct cells, so each record is counted once and the grid totals the slice.
+    { row: 'High Potential', cells: ['Emerging Potential', 'High Potential', 'Key Talent'] },
+    { row: 'Medium Potential', cells: ['Effective Contributor', 'Core Talent', 'Specialist / High Impact'] },
+    { row: 'Low Potential', cells: ['Developing', 'Solid Professional', 'Trusted Professional'] }
   ];
 
   // Group filtered candidates by cell

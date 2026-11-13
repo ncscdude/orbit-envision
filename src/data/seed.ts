@@ -1810,8 +1810,8 @@ export function generateMilestones(): Milestone[] {
           phase: ph.p,
           name: `${ph.name} Part ${m}`,
           owner: ph.p <= 2 ? 'BMO Lead' : ph.p === 3 ? 'Data Engineer' : ph.p === 4 ? 'Board Recorder' : 'Scoring Engineer',
-          planned: `2026-${(10 + Math.floor(pIdx / 2)).toString().padStart(2, '0')}-15`,
-          actual: status === 'Done' ? `2026-${(10 + Math.floor(pIdx / 2)).toString().padStart(2, '0')}-14` : null,
+          planned: milestoneDate(10 + Math.floor(pIdx / 2), 15),
+          actual: status === 'Done' ? milestoneDate(10 + Math.floor(pIdx / 2), 14) : null,
           dependsOn: m === 2 ? [`MS-${b.id}-${ph.p}-1`] : pIdx > 0 ? [`MS-${b.id}-${phases[pIdx - 1].p}-2`] : [],
           status
         });
@@ -1820,6 +1820,13 @@ export function generateMilestones(): Milestone[] {
   });
 
   return result;
+}
+
+/** Month numbers past 12 roll into the next year, so every planned date is a real date. */
+function milestoneDate(month: number, day: number): string {
+  const year = 2026 + Math.floor((month - 1) / 12);
+  const m = ((month - 1) % 12) + 1;
+  return `${year}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
 export const RISKS_SEED: Risk[] = [
