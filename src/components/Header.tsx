@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useOrbit } from '../state/context';
 import { EXPERIENCES } from '../registry/experiences';
 import { identityProvider, devIdentityProvider } from '../auth/identity';
-import { ShieldCheck, ShieldAlert, Clock, Layers, BookOpen, ChevronDown, UserCheck, KeyRound } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Clock, Layers, BookOpen, ChevronDown, UserCheck, KeyRound, FileText } from 'lucide-react';
 import { effectiveRole } from '../state/reducer';
 import { canOpen } from '../auth/permissions';
 import { IS_MVP } from '../scope';
@@ -123,6 +123,19 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCatalog, onOpenDemoGuide }
             <KeyRound className="w-3.5 h-3.5 text-cyan-400" />
             <span>Roles &amp; Access</span>
           </a>}
+
+          {/* Role handouts: annotated walk-through per role, PDF and PowerPoint, in the Field Guide */}
+          <a
+            href="/guide/#handouts"
+            target="_blank"
+            rel="noopener"
+            data-testid="handouts-link"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-slate-300 bg-[#05080f] border border-[#1e2d45] hover:text-cyan-300 hover:border-cyan-500/50 transition-colors"
+            title="Opens the role handouts: one annotated walk-through per role"
+          >
+            <FileText className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Handouts</span>
+          </a>
 
           {/* Demo Guide Drawer Trigger */}
           <button

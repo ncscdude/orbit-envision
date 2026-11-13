@@ -48,3 +48,10 @@ test('Field Guide is self-contained so the CSP does not block it', () => {
     assert.ok(existsSync(`public/guide/img/${name}.jpg`), `missing screenshot ${name}`);
   }
 });
+
+test('every role handout linked in the Field Guide exists, as PDF and PowerPoint', () => {
+  const guide = readFileSync('public/guide/index.html', 'utf8');
+  const links = [...guide.matchAll(/href="(handouts\/[^"]+)"/g)].map(m => m[1]);
+  assert.equal(links.length, 10, 'five roles, two formats each');
+  for (const l of links) assert.ok(existsSync(`public/guide/${l}`), `missing handout ${l}`);
+});

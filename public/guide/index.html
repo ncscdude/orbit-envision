@@ -68,6 +68,17 @@ button { font: inherit; color: inherit; }
 .getin p { margin: 0; color: var(--muted); font-size: 14px; }
 .getin code { font-family: var(--f-mono); font-size: 13px; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); padding: 0 5px; border-radius: 4px; word-break: break-all; }
 
+/* Handouts */
+.handouts { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+.handouts .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.handouts h3 { font-size: 18px; }
+.handouts p { margin: 0; color: var(--muted); font-size: 14px; }
+.handouts .dl { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.handouts .dl a { display: inline-block; text-decoration: none; font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface-2); }
+.handouts .dl a.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.section code { font-family: var(--f-mono); font-size: 13px; background: var(--surface-2); border: 1px solid var(--line); padding: 0 5px; border-radius: 4px; }
+.handouts .meta { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+
 /* Role picker */
 .picker-label { font-family: var(--f-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
 .picker { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 8px; }
@@ -155,6 +166,7 @@ dialog .bar { display: flex; justify-content: space-between; align-items: center
 dialog button { background: #1e2d45; border: 0; color: #e6edf7; border-radius: 6px; padding: 6px 10px; cursor: pointer; }
 
 @media (max-width: 980px) {
+  .handouts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .picker { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .getin { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .body { grid-template-columns: minmax(0, 1fr); }
@@ -163,6 +175,7 @@ dialog button { background: #1e2d45; border: 0; color: #e6edf7; border-radius: 6
   .rules { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 560px) {
+  .handouts { grid-template-columns: minmax(0, 1fr); }
   .picker { grid-template-columns: repeat(2, minmax(0, 1fr)); position: static; }
   .getin { grid-template-columns: minmax(0, 1fr); }
   .limits { grid-template-columns: minmax(0, 1fr); }
@@ -186,6 +199,18 @@ dialog button { background: #1e2d45; border: 0; color: #e6edf7; border-radius: 6
     <div class="card"><span class="k">2 · SIGN IN</span><h3>Email and PIN</h3><p>Enter your <code>@spaceforce.mil</code> or <code>@us.af.mil</code> email. Type the code sent to your inbox. Check junk if it is slow.</p></div>
     <div class="card"><span class="k">3 · PICK A PERSPECTIVE</span><h3>Top-right menu</h3><p>In this demo, choose a role under <strong>Perspective</strong>. In Envision your role will come from your identity instead.</p></div>
     <div class="card"><span class="k">4 · NO ACCESS?</span><h3>Unmapped identity</h3><p>A "No access" screen means your identity has no ORBIT role. The attempt is logged. Ask the ORBIT role table approver.</p></div>
+  </section>
+
+  <section class="section" id="handouts" aria-labelledby="handouts-h">
+    <h2 id="handouts-h">Role handouts</h2>
+    <p>One walk-through per role for the MVP build at <code>orbit.ncscdude.com/mvp</code>. Every screen is annotated: what each widget shows, where its data comes from, the rule behind it, and whether the number is calculated, a fixed rule, a sample value, or a pre-written AI stand-in. Open the PDF to read, or download the PowerPoint to reuse.</p>
+    <div class="handouts">
+      <div class="card"><h3>BMO Lead</h3><p>Runs the board: data in, gates, lock, certify.</p><span class="meta">53 slides</span><div class="dl"><a class="primary" href="handouts/ORBIT-MVP-Walkthrough-BMO-Lead.pdf" target="_blank" rel="noopener">PDF · 6.5 MB</a><a href="handouts/ORBIT-MVP-Walkthrough-BMO-Lead.pptx" download>PowerPoint · 9.6 MB</a></div></div>
+      <div class="card"><h3>Board President</h3><p>Presides: AI timing, panel progress, divergent scores.</p><span class="meta">47 slides</span><div class="dl"><a class="primary" href="handouts/ORBIT-MVP-Walkthrough-Board-President.pdf" target="_blank" rel="noopener">PDF · 6.0 MB</a><a href="handouts/ORBIT-MVP-Walkthrough-Board-President.pptx" download>PowerPoint · 9.2 MB</a></div></div>
+      <div class="card"><h3>Panelist</h3><p>Scores records: the queue, eight lenses, the score dock.</p><span class="meta">34 slides</span><div class="dl"><a class="primary" href="handouts/ORBIT-MVP-Walkthrough-Panelist.pdf" target="_blank" rel="noopener">PDF · 4.1 MB</a><a href="handouts/ORBIT-MVP-Walkthrough-Panelist.pptx" download>PowerPoint · 6.2 MB</a></div></div>
+      <div class="card"><h3>Board Recorder</h3><p>Keeps the record: DELTA Ledger and the file gate.</p><span class="meta">54 slides</span><div class="dl"><a class="primary" href="handouts/ORBIT-MVP-Walkthrough-Board-Recorder.pdf" target="_blank" rel="noopener">PDF · 6.6 MB</a><a href="handouts/ORBIT-MVP-Walkthrough-Board-Recorder.pptx" download>PowerPoint · 9.9 MB</a></div></div>
+      <div class="card"><h3>ORBIT Admin</h3><p>Keeps the system healthy: health checks, repairs, access.</p><span class="meta">53 slides</span><div class="dl"><a class="primary" href="handouts/ORBIT-MVP-Walkthrough-ORBIT-Admin.pdf" target="_blank" rel="noopener">PDF · 6.6 MB</a><a href="handouts/ORBIT-MVP-Walkthrough-ORBIT-Admin.pptx" download>PowerPoint · 9.7 MB</a></div></div>
+    </div>
   </section>
 
   <div class="picker-label" id="picker-label">Choose your role</div>

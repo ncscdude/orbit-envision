@@ -82,3 +82,16 @@ test('Roles & Access opens the Field Guide permission table generated from the a
   await expect(matrix).toContainText('ORBIT Admin');
   await expect(matrix.getByRole('row', { name: /^Panel Oversight/ })).toContainText('Owns');
 });
+
+test('Handouts link opens the role handouts, served as PDF, from the full build and the MVP', async ({ page, request }) => {
+  for (const base of ['/', '/mvp/']) {
+    await page.goto(base);
+    await expect(page.getByTestId('handouts-link')).toHaveAttribute('href', '/guide/#handouts');
+  }
+  await page.goto('/guide/#handouts');
+  const section = page.locator('#handouts');
+  await expect(section.locator('.card')).toHaveCount(5);
+  const res = await request.get('/guide/handouts/ORBIT-MVP-Walkthrough-Panelist.pdf');
+  expect(res.status()).toBe(200);
+  expect(res.headers()['content-type']).toContain('pdf');
+});

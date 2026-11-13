@@ -2,9 +2,9 @@
 import type { GateResults } from '../lib/gates';
 
 export const GATE_RESULTS: GateResults = {
-  "recordedAt": "2026-11-13T14:22:21.684Z",
+  "recordedAt": "2026-11-13T16:47:06.996Z",
   "branch": "mvp-scope",
-  "commit": "959b9b4",
+  "commit": "d2fc59d",
   "lint": {
     "state": "passed",
     "errors": 0,
@@ -13,9 +13,9 @@ export const GATE_RESULTS: GateResults = {
   },
   "unit": {
     "state": "passed",
-    "passed": 77,
+    "passed": 78,
     "failed": 0,
-    "total": 77,
+    "total": 78,
     "files": [
       {
         "file": "src/auth/identity.test.ts",
@@ -34,7 +34,7 @@ export const GATE_RESULTS: GateResults = {
       },
       {
         "file": "src/guardrails/hosting.test.ts",
-        "passed": 5,
+        "passed": 6,
         "failed": 0
       },
       {
@@ -96,8 +96,8 @@ export const GATE_RESULTS: GateResults = {
   },
   "acceptance": {
     "state": "passed",
-    "passed": 77,
+    "passed": 78,
     "failed": 0,
-    "total": 77
+    "total": 78
   }
 };
